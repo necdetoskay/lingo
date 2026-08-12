@@ -11,6 +11,7 @@ Architecture decisions are recorded here before implementation when they materia
 - ADR-005 — Persistence and event/audit strategy
 - ADR-006 — Local word dataset storage and synchronization
 - ADR-007 — PoC identity/authentication model
+- ADR-008 — Game Experience Event System
 
 ## ADR status model
 
