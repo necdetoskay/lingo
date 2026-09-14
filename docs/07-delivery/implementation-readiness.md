@@ -46,7 +46,7 @@ This gate is complemented by `docs/07-delivery/aegis-mur-hardening-plan.md` and 
 - [ ] Dataset build/version process
 - [ ] Competitive effective word-policy version pinning finalized
 
-## Multiplayer / competitive security
+## Multiplayer / competitive security / identity
 
 - [x] Server-authoritative principle
 - [x] Claim-window / answer-window separation
@@ -58,14 +58,20 @@ This gate is complemented by `docs/07-delivery/aegis-mur-hardening-plan.md` and 
 - [x] Roster lock / no late join / PoC abandonment semantics
 - [x] Competitive Security & Abuse Threat Model accepted (#17)
 - [x] Server-resolved mutation authorization chain defined
+- [x] Guest-first server-issued PlayerSession identity model accepted (ADR-007/#11)
+- [x] Persistent account is not required for PoC
+- [x] Display name / device ID are non-authoritative identity metadata
+- [x] High-entropy server-issued reconnect credential semantics defined
 - [x] Session security/revocation version requirement defined
 - [x] Duplicate connection/takeover uses one current mutation-authoritative connection generation
+- [x] Successful reconnect/takeover rotates/renews authority and invalidates old generation
 - [x] Old connection generation loses mutation authority after valid reconnect/takeover
 - [x] Stale/revoked session cannot regain authority via replay
+- [x] Room/join code cannot impersonate or reconnect an existing player
+- [x] Future account-linking cannot rewrite active match identity/ownership
 - [x] Cross-match/wrong-player mutation fail-closed semantics defined
 - [x] Client score/ownership/deadline/randomness fields are non-authoritative
 - [x] Bounded malformed/oversized/rate-abuse requirements defined
-- [ ] ADR-007 credential/account/guest/reconnect-token representation accepted (#11)
 - [ ] Realtime performance/fairness numeric budgets defined (#20)
 
 ## Architecture
@@ -76,7 +82,7 @@ This gate is complemented by `docs/07-delivery/aegis-mur-hardening-plan.md` and 
 - [x] ADR-004 authoritative timer/latency accepted
 - [x] ADR-005 persistence/snapshot/event-audit accepted
 - [ ] ADR-006 local word-dataset storage accepted
-- [ ] ADR-007 authentication/identity accepted
+- [x] ADR-007 authentication/identity accepted
 - [ ] Experience Event System ADR-008 dependencies are satisfied and its final status is consistent
 
 ## Reliability / observability / privacy
@@ -89,9 +95,10 @@ This gate is complemented by `docs/07-delivery/aegis-mur-hardening-plan.md` and 
 - [x] Stale snapshot/cache cannot overwrite a higher durable revision (#9)
 - [x] Active timers restore existing deadline; they do not restart after recovery (#9)
 - [x] Active-question randomization state restores existing derived result; missing state fails closed (#9/#18)
+- [x] PoC guest identity avoids mandatory email/phone/password/real-name collection (ADR-007)
+- [x] Raw access/reconnect credentials are excluded from gameplay audit logging
 - [ ] Structured observability / correlation contract defined (#22)
 - [ ] Privacy/redaction/minimum-data retention durations defined (#22)
-- [x] Security model prohibits raw credential/secret logging
 - [ ] Audit trail retention/field policy finalized (#22)
 
 ## Testing
@@ -108,6 +115,7 @@ This gate is complemented by `docs/07-delivery/aegis-mur-hardening-plan.md` and 
 - [x] Randomness test contract permits explicit derived reveal-order fixtures (#18)
 - [x] Security threat model defines required wrong-user/stale/replay/duplicate-connection attack cases (#17)
 - [x] ADR-005 defines required persistence/crash-window failure-injection cases (#9)
+- [x] ADR-007 defines guest/reconnect/revocation/old-connection MUR cases (#11)
 - [ ] Executable fixed-order randomness fixtures implemented in Golden suite (#13)
 - [ ] Executable before/exact/after deadline vectors implemented in Golden suite (#4/#13)
 - [ ] Executable partial-failure/idempotency/recovery cases implemented (#21)
