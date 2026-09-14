@@ -96,10 +96,16 @@ This gate is complemented by `docs/07-delivery/aegis-mur-hardening-plan.md` and 
 - [x] Active timers restore existing deadline; they do not restart after recovery (#9)
 - [x] Active-question randomization state restores existing derived result; missing state fails closed (#9/#18)
 - [x] PoC guest identity avoids mandatory email/phone/password/real-name collection (ADR-007)
-- [x] Raw access/reconnect credentials are excluded from gameplay audit logging
-- [ ] Structured observability / correlation contract defined (#22)
-- [ ] Privacy/redaction/minimum-data retention durations defined (#22)
-- [ ] Audit trail retention/field policy finalized (#22)
+- [x] Observability, Privacy & Audit Contract accepted (#22)
+- [x] Domain-transition, security-decision, operational-diagnostic and metrics evidence classes separated
+- [x] Structured correlation/reason-code model defined
+- [x] Raw access/reconnect credentials/secrets prohibited from logs/audit
+- [x] Raw microphone/audio logging/retention prohibited by default
+- [x] Malformed arbitrary user text not persisted raw by default
+- [x] Hidden answers/future reveal order excluded from client-facing diagnostics
+- [x] PoC retention classes defined: correctness replay active+24h minimum, domain/security audit 30d, operational diagnostics 7d
+- [x] Audit/logging paths bounded against abuse amplification
+- [x] Audit trail requirements can explain score, ownership, timer, validation and security decisions
 
 ## Testing
 
@@ -116,6 +122,7 @@ This gate is complemented by `docs/07-delivery/aegis-mur-hardening-plan.md` and 
 - [x] Security threat model defines required wrong-user/stale/replay/duplicate-connection attack cases (#17)
 - [x] ADR-005 defines required persistence/crash-window failure-injection cases (#9)
 - [x] ADR-007 defines guest/reconnect/revocation/old-connection MUR cases (#11)
+- [x] #22 defines credential-redaction/malformed-input/log-injection/retention MUR cases
 - [ ] Executable fixed-order randomness fixtures implemented in Golden suite (#13)
 - [ ] Executable before/exact/after deadline vectors implemented in Golden suite (#4/#13)
 - [ ] Executable partial-failure/idempotency/recovery cases implemented (#21)
