@@ -1,7 +1,7 @@
 # Lingo Domain Package
 
 Status: **Canonical foundation**  
-Version: 1.1
+Version: 1.2
 
 This directory contains framework-independent authoritative domain contracts for Lingo.
 
@@ -13,6 +13,7 @@ This directory contains framework-independent authoritative domain contracts for
 - `match-state-machine.md` — explicit Match/Stage/Question state-machine requirements for Classic Mode.
 - `failure-and-replay-semantics.md` — retry, replay, reconnect, response-loss, restart and partial-failure semantics.
 - `multiplayer-lifecycle.md` — room, roster, ready/start, host, disconnect/reconnect and abandonment semantics for the 2-4 player PoC.
+- `authoritative-randomness.md` — one-draw/persist-result, replay-safe randomness and client-secrecy contract for gameplay-affecting random choices.
 
 ## Authority boundaries
 
@@ -22,14 +23,14 @@ These documents define domain behavior while leaving unrelated unresolved decisi
 - Word source/licensing/dataset lifecycle: #3
 - Authoritative timer/latency: **resolved by accepted ADR-004**
 - Multiplayer lifecycle/reconnect: **resolved by `multiplayer-lifecycle.md` / #5**
-- Persistence/event-audit: #9
+- Authoritative randomness/reveal-order: **resolved by `authoritative-randomness.md` / #18**
+- Persistence/event-audit representation: #9
 - Word dataset storage/sync: #10
 - Identity/authentication and session security: #11/#17
 - Stage transition UX: #12
-- Authoritative randomness implementation contract: #18
 
 ## Verification
 
-Golden Game fixtures (#13) and AEGIS/MUR qualification (#21) must reference the stable invariant IDs from `invariants.md`.
+Golden Game fixtures (#13) and AEGIS/MUR qualification (#21) must reference the stable invariant IDs from `invariants.md` plus the `RAND-*` randomness invariants where applicable.
 
 Changes to canonical domain semantics require affected stage/ADR/test review before implementation changes.
