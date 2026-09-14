@@ -8,26 +8,27 @@ This gate is complemented by `docs/07-delivery/aegis-mur-hardening-plan.md` and 
 
 ## Game design
 
-- [x] Stage 1 canonical rules documented
-- [x] Stage 2 canonical rules documented
-- [x] Stage 3 canonical rules documented
-- [ ] `LOCKED` status consistency repaired; no implementation-affecting unresolved dependency/TBD remains (#26)
+- [x] Stage 1 canonical rules documented and LOCKED v1.1
+- [x] Stage 2 canonical rules documented and LOCKED v1.1
+- [x] Stage 3 canonical rules documented and LOCKED v1.1
+- [x] `LOCKED` status consistency repaired for Stage 1/2/3 (#26)
 - [ ] Final-stage canonical rules
 - [ ] Match winner/tie-break rules
 - [ ] Stage transition UX
-- [ ] Exact invalid-input policy for standard questions
-- [ ] Exact 10-second bonus deadline boundary
-- [ ] Whether Stage 2 bonus value continues decaying during steal chain
+- [x] Exact gameplay invalid-input behavior for Stage 1/2/3 defined
+- [x] Exact 10-second bonus deadline boundary defined by ADR-004
+- [x] Stage 2 bonus-value behavior during steal chain resolved: value freezes at primary commitment
 
 ## Domain / integrity
 
-- [ ] Canonical `docs/02-domain/` exists (#16)
-- [ ] Domain model / aggregate boundaries defined
-- [ ] Stable invariant registry (`INV-*`) defined
-- [ ] Intent guard / authorization-independent ownership semantics defined
-- [ ] Replay/idempotency semantics defined
-- [ ] Failure/replay semantics defined
-- [ ] Authoritative randomness/reveal-order contract accepted (#18)
+- [x] Canonical `docs/02-domain/` exists (#16)
+- [x] Domain model / aggregate boundaries defined
+- [x] Stable invariant registry (`INV-*`) defined
+- [x] Intent guard / ownership/idempotency semantics defined
+- [x] Replay/idempotency semantics defined
+- [x] Failure/replay semantics defined
+- [x] Multiplayer lifecycle/reconnect semantics defined (#5)
+- [ ] Authoritative randomness/reveal-order implementation contract accepted (#18)
 - [ ] Canonical dependency/status integrity rules defined (#19)
 
 ## Word platform
@@ -35,8 +36,9 @@ This gate is complemented by `docs/07-delivery/aegis-mur-hardening-plan.md` and 
 - [x] Guess Dictionary vs Answer Pool separation
 - [x] Turkish normalization principle
 - [x] Duplicate-letter evaluation principle
+- [x] Canonical gameplay invalid-input classification/policy
 - [ ] Source/licensing decision for initial dictionary
-- [ ] Canonical invalid-word policy
+- [ ] Full canonical linguistic invalid-word/exclusion policy
 - [ ] Initial dataset schema finalized
 - [ ] Dataset build/version process
 - [ ] Competitive effective word-policy version pinning finalized
@@ -45,13 +47,14 @@ This gate is complemented by `docs/07-delivery/aegis-mur-hardening-plan.md` and 
 
 - [x] Server-authoritative principle
 - [x] Claim-window / answer-window separation
-- [ ] Network latency/grace policy
-- [ ] Disconnect/reconnect rules per state
-- [ ] Room lifecycle
-- [ ] Player-ready/start rules
-- [ ] Host privileges, if any
-- [ ] Duplicate connection/session takeover behavior
-- [ ] Stale/replayed session behavior
+- [x] PoC network latency/grace policy: no gameplay grace; authoritative sequencer time only (ADR-004)
+- [x] Disconnect/reconnect rules per lifecycle state
+- [x] Room lifecycle
+- [x] Player-ready/start rules
+- [x] Lobby host privileges and non-authority boundaries
+- [x] Roster lock / no late join / PoC abandonment semantics
+- [ ] Duplicate connection/session takeover security behavior (#11/#17)
+- [ ] Stale/replayed session security behavior (#11/#17)
 - [ ] Competitive abuse/threat model defined (#17)
 - [ ] Realtime performance/fairness budgets defined (#20)
 
@@ -60,7 +63,7 @@ This gate is complemented by `docs/07-delivery/aegis-mur-hardening-plan.md` and 
 - [ ] Mobile technology ADR
 - [ ] Backend/runtime ADR
 - [ ] Realtime transport ADR
-- [ ] ADR-004 authoritative timer/latency accepted
+- [x] ADR-004 authoritative timer/latency accepted
 - [ ] ADR-005 persistence/event-audit accepted
 - [ ] ADR-006 local word-dataset storage accepted
 - [ ] ADR-007 authentication/identity accepted
@@ -86,7 +89,7 @@ This gate is complemented by `docs/07-delivery/aegis-mur-hardening-plan.md` and 
 - [ ] 4-player full-match fixture
 - [ ] Canonical `INV-*` -> fixture/test mapping defined (#13/#16)
 - [ ] Fixed-seed randomness fixtures defined (#13/#18)
-- [ ] Before/exact/after deadline vectors defined (#4/#13)
+- [ ] Executable before/exact/after deadline vectors implemented in Golden suite (#4/#13)
 - [ ] AEGIS/MUR adversarial qualification matrix defined (#21)
 
 ## Delivery / supply chain
