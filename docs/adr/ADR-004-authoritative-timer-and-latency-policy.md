@@ -70,6 +70,12 @@ A timeout worker/scheduler may request a timeout transition, but the authoritati
 - deadline,
 - terminal status.
 
+Because equality belongs to the valid intent window, a timeout transition may terminally close a deadline-governed state only when:
+
+`authoritativeNow > deadlineAt`
+
+A timeout callback delivered at exactly `deadlineAt` cannot by itself close the state before an exact-boundary intent has had the opportunity to enter the authoritative sequencer. It must be treated as not-yet-terminal/no-op/rescheduled according to the selected runtime mechanism.
+
 Repeated timeout delivery is idempotent and cannot double-transition, double-reveal, double-transfer ownership, or double-award score.
 
 ### 8. Reconnect never extends a deadline
@@ -119,6 +125,8 @@ If two intents have the same authoritative timestamp, the authoritative match se
 Tests must cover at minimum:
 
 - immediately before / exactly at / immediately after deadline;
+- timeout callback exactly at deadline must not close the state;
+- timeout transition only after `authoritativeNow > deadlineAt`;
 - immediately before / exactly at / immediately after reveal milestone;
 - duplicate timeout delivery;
 - stale timer revision;
@@ -137,6 +145,7 @@ Use fake/virtual clocks for deterministic rule tests.
 
 - One unambiguous deadline rule exists for every competitive timer.
 - Client clock manipulation cannot grant extra time.
+- Exact-deadline intents cannot lose to an early equality timeout transition.
 - Reconnect/retry cannot extend timers or duplicate timer effects.
 - Stage 2 bonus steal scoring is independent of steal-chain duration.
 
