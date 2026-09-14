@@ -1,0 +1,271 @@
+{
+  "manifestVersion": 1,
+  "statusModel": [
+    "DRAFT",
+    "PROPOSED",
+    "CANONICAL_FOUNDATION",
+    "CANONICAL_GATE",
+    "ACCEPTED",
+    "LOCKED",
+    "EXPERIMENTAL_ROADMAP",
+    "SUPERSEDED",
+    "REJECTED"
+  ],
+  "versionRequiredFor": ["ACCEPTED", "LOCKED"],
+  "readmeRequiredPaths": [
+    "docs/00-project/",
+    "docs/01-game-design/",
+    "docs/02-domain/",
+    "docs/03-word-platform/",
+    "docs/04-architecture/",
+    "docs/05-ai-ml/",
+    "docs/06-testing/",
+    "docs/07-delivery/",
+    "docs/adr/"
+  ],
+  "documents": [
+    {
+      "id": "PROJECT-CHARTER",
+      "path": "docs/00-project/project-charter.md",
+      "type": "PROJECT_CANON",
+      "status": "CANONICAL_FOUNDATION",
+      "relatedIssues": []
+    },
+    {
+      "id": "GAME-STAGE-01",
+      "path": "docs/01-game-design/classic-mode/stage-01-warmup.md",
+      "type": "GAMEPLAY_SPEC",
+      "status": "LOCKED",
+      "version": "1.1",
+      "relatedIssues": [4, 26],
+      "testGateRequired": true,
+      "requiredTestIssues": [13, 21],
+      "dependencies": [
+        {"id": "WORD-VALIDATION", "allowedStatuses": ["ACCEPTED"]},
+        {"id": "DOMAIN-INVARIANTS", "allowedStatuses": ["CANONICAL_FOUNDATION"]},
+        {"id": "ADR-004", "allowedStatuses": ["ACCEPTED"]},
+        {"id": "DOMAIN-RANDOMNESS", "allowedStatuses": ["ACCEPTED"]}
+      ]
+    },
+    {
+      "id": "GAME-STAGE-02",
+      "path": "docs/01-game-design/classic-mode/stage-02-steal.md",
+      "type": "GAMEPLAY_SPEC",
+      "status": "LOCKED",
+      "version": "1.1",
+      "relatedIssues": [4, 5, 26],
+      "testGateRequired": true,
+      "requiredTestIssues": [13, 21],
+      "dependencies": [
+        {"id": "WORD-VALIDATION", "allowedStatuses": ["ACCEPTED"]},
+        {"id": "DOMAIN-INVARIANTS", "allowedStatuses": ["CANONICAL_FOUNDATION"]},
+        {"id": "DOMAIN-MULTIPLAYER-LIFECYCLE", "allowedStatuses": ["ACCEPTED"]},
+        {"id": "ADR-004", "allowedStatuses": ["ACCEPTED"]},
+        {"id": "DOMAIN-RANDOMNESS", "allowedStatuses": ["ACCEPTED"]}
+      ]
+    },
+    {
+      "id": "GAME-STAGE-03",
+      "path": "docs/01-game-design/classic-mode/stage-03-duel.md",
+      "type": "GAMEPLAY_SPEC",
+      "status": "LOCKED",
+      "version": "1.1",
+      "relatedIssues": [5, 26],
+      "testGateRequired": true,
+      "requiredTestIssues": [13, 21],
+      "dependencies": [
+        {"id": "WORD-VALIDATION", "allowedStatuses": ["ACCEPTED"]},
+        {"id": "DOMAIN-INVARIANTS", "allowedStatuses": ["CANONICAL_FOUNDATION"]},
+        {"id": "DOMAIN-MULTIPLAYER-LIFECYCLE", "allowedStatuses": ["ACCEPTED"]}
+      ]
+    },
+    {
+      "id": "DOMAIN-INVARIANTS",
+      "path": "docs/02-domain/invariants.md",
+      "type": "DOMAIN_CONTRACT",
+      "status": "CANONICAL_FOUNDATION",
+      "relatedIssues": [16],
+      "testGateRequired": true,
+      "requiredTestIssues": [13, 21]
+    },
+    {
+      "id": "DOMAIN-INTENT",
+      "path": "docs/02-domain/intent-contract.md",
+      "type": "DOMAIN_CONTRACT",
+      "status": "CANONICAL_FOUNDATION",
+      "relatedIssues": [16, 17],
+      "testGateRequired": true,
+      "requiredTestIssues": [21],
+      "dependencies": [
+        {"id": "SECURITY-THREAT", "allowedStatuses": ["ACCEPTED"]},
+        {"id": "ADR-004", "allowedStatuses": ["ACCEPTED"]},
+        {"id": "ADR-005", "allowedStatuses": ["ACCEPTED"]},
+        {"id": "ADR-007", "allowedStatuses": ["ACCEPTED"]}
+      ]
+    },
+    {
+      "id": "DOMAIN-FAILURE-REPLAY",
+      "path": "docs/02-domain/failure-and-replay-semantics.md",
+      "type": "DOMAIN_CONTRACT",
+      "status": "CANONICAL_FOUNDATION",
+      "relatedIssues": [9, 16],
+      "testGateRequired": true,
+      "requiredTestIssues": [21],
+      "dependencies": [
+        {"id": "ADR-005", "allowedStatuses": ["ACCEPTED"]},
+        {"id": "DOMAIN-RANDOMNESS", "allowedStatuses": ["ACCEPTED"]}
+      ]
+    },
+    {
+      "id": "DOMAIN-MULTIPLAYER-LIFECYCLE",
+      "path": "docs/02-domain/multiplayer-lifecycle.md",
+      "type": "DOMAIN_CONTRACT",
+      "status": "ACCEPTED",
+      "version": "1.0",
+      "relatedIssues": [5],
+      "testGateRequired": true,
+      "requiredTestIssues": [13, 21],
+      "dependencies": [
+        {"id": "ADR-004", "allowedStatuses": ["ACCEPTED"]},
+        {"id": "ADR-007", "allowedStatuses": ["ACCEPTED"]}
+      ]
+    },
+    {
+      "id": "DOMAIN-RANDOMNESS",
+      "path": "docs/02-domain/authoritative-randomness.md",
+      "type": "DOMAIN_CONTRACT",
+      "status": "ACCEPTED",
+      "version": "1.0",
+      "relatedIssues": [18],
+      "testGateRequired": true,
+      "requiredTestIssues": [13, 21],
+      "dependencies": [
+        {"id": "ADR-004", "allowedStatuses": ["ACCEPTED"]},
+        {"id": "ADR-005", "allowedStatuses": ["ACCEPTED"]}
+      ]
+    },
+    {
+      "id": "WORD-PLATFORM",
+      "path": "docs/03-word-platform/word-platform.md",
+      "type": "DATA_POLICY",
+      "status": "CANONICAL_FOUNDATION",
+      "relatedIssues": [3, 10, 14]
+    },
+    {
+      "id": "WORD-VALIDATION",
+      "path": "docs/03-word-platform/word-validation-policy.md",
+      "type": "DATA_POLICY",
+      "status": "ACCEPTED",
+      "version": "1.0",
+      "relatedIssues": [3],
+      "testGateRequired": true,
+      "requiredTestIssues": [13, 21],
+      "dependencies": [
+        {"id": "WORD-PLATFORM", "allowedStatuses": ["CANONICAL_FOUNDATION"]}
+      ]
+    },
+    {
+      "id": "ARCH-PRINCIPLES",
+      "path": "docs/04-architecture/architecture-principles.md",
+      "type": "ARCHITECTURE_CONTRACT",
+      "status": "CANONICAL_FOUNDATION",
+      "relatedIssues": []
+    },
+    {
+      "id": "SECURITY-THREAT",
+      "path": "docs/04-architecture/competitive-security-and-abuse-model.md",
+      "type": "SECURITY_CONTRACT",
+      "status": "ACCEPTED",
+      "version": "1.0",
+      "relatedIssues": [17],
+      "testGateRequired": true,
+      "requiredTestIssues": [21],
+      "dependencies": [
+        {"id": "ADR-004", "allowedStatuses": ["ACCEPTED"]},
+        {"id": "ADR-005", "allowedStatuses": ["ACCEPTED"]},
+        {"id": "ADR-007", "allowedStatuses": ["ACCEPTED"]},
+        {"id": "DOMAIN-RANDOMNESS", "allowedStatuses": ["ACCEPTED"]}
+      ]
+    },
+    {
+      "id": "OBS-PRIVACY-AUDIT",
+      "path": "docs/04-architecture/observability-privacy-audit-contract.md",
+      "type": "OBSERVABILITY_PRIVACY_CONTRACT",
+      "status": "ACCEPTED",
+      "version": "1.0",
+      "relatedIssues": [22],
+      "testGateRequired": true,
+      "requiredTestIssues": [21],
+      "dependencies": [
+        {"id": "ADR-005", "allowedStatuses": ["ACCEPTED"]},
+        {"id": "ADR-007", "allowedStatuses": ["ACCEPTED"]},
+        {"id": "SECURITY-THREAT", "allowedStatuses": ["ACCEPTED"]}
+      ]
+    },
+    {
+      "id": "TEST-STRATEGY",
+      "path": "docs/06-testing/test-strategy.md",
+      "type": "TEST_CONTRACT",
+      "status": "CANONICAL_FOUNDATION",
+      "relatedIssues": [13, 21]
+    },
+    {
+      "id": "IMPLEMENTATION-READINESS",
+      "path": "docs/07-delivery/implementation-readiness.md",
+      "type": "DELIVERY_GATE",
+      "status": "CANONICAL_GATE",
+      "relatedIssues": [15, 24]
+    },
+    {
+      "id": "AEGIS-MUR-HARDENING",
+      "path": "docs/07-delivery/aegis-mur-hardening-plan.md",
+      "type": "DELIVERY_GATE",
+      "status": "CANONICAL_GATE",
+      "relatedIssues": [24]
+    },
+    {
+      "id": "ADR-004",
+      "path": "docs/adr/ADR-004-authoritative-timer-and-latency-policy.md",
+      "type": "ADR",
+      "status": "ACCEPTED",
+      "version": "1.0",
+      "relatedIssues": [4],
+      "testGateRequired": true,
+      "requiredTestIssues": [13, 21]
+    },
+    {
+      "id": "ADR-005",
+      "path": "docs/adr/ADR-005-persistence-snapshot-event-audit-strategy.md",
+      "type": "ADR",
+      "status": "ACCEPTED",
+      "version": "1.0",
+      "relatedIssues": [9],
+      "testGateRequired": true,
+      "requiredTestIssues": [21]
+    },
+    {
+      "id": "ADR-007",
+      "path": "docs/adr/ADR-007-poc-identity-authentication-model.md",
+      "type": "ADR",
+      "status": "ACCEPTED",
+      "version": "1.0",
+      "relatedIssues": [11],
+      "testGateRequired": true,
+      "requiredTestIssues": [21]
+    },
+    {
+      "id": "ADR-008",
+      "path": "docs/adr/ADR-008-game-experience-event-system.md",
+      "type": "ADR",
+      "status": "PROPOSED",
+      "relatedIssues": [1],
+      "dependencies": [
+        {"id": "ADR-004", "allowedStatuses": ["ACCEPTED"]},
+        {"id": "ADR-005", "allowedStatuses": ["ACCEPTED"]},
+        {"id": "GAME-STAGE-01", "allowedStatuses": ["LOCKED"]},
+        {"id": "GAME-STAGE-02", "allowedStatuses": ["LOCKED"]},
+        {"id": "GAME-STAGE-03", "allowedStatuses": ["LOCKED"]}
+      ]
+    }
+  ]
+}
