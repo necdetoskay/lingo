@@ -1,12 +1,16 @@
 # Lingo Failure and Replay Semantics
 
 Status: **Canonical foundation**  
-Version: 1.0  
-Tracking: #16
+Version: 1.1  
+Tracking: #16 / #9
+
+## Change rationale — 1.1
+
+ADR-005 is now Accepted. The previously deferred persistence/concurrency/crash-window behavior is therefore resolved and referenced directly here.
 
 ## Purpose
 
-This document defines technology-independent behavior for retries, reconnects, duplicate delivery, ambiguous responses and stale state. Persistence implementation details remain owned by ADR-005 (#9).
+Define technology-independent behavior for retries, reconnects, duplicate delivery, ambiguous responses, restart and stale state, aligned with ADR-005 persistence semantics.
 
 ## Core rule
 
@@ -18,148 +22,195 @@ Failures may delay progress, but they must not silently create a second logical 
 
 If the same `actionId` and same canonical payload are received again after the action already committed:
 
-- do not execute side effects again,
-- return or reconstruct the prior logical result where possible,
-- preserve the same authoritative revision/result identity.
+- current caller/session authorization is checked first;
+- no side effect executes again;
+- the prior logical result is returned/reconstructed from durable idempotency evidence;
+- the same authoritative result/revision identity is preserved.
 
 ### Conflicting replay
 
 If the same `actionId` is reused with a materially different canonical payload:
 
-- reject fail-closed,
-- do not interpret it as a new action,
-- record an auditable conflict/security reason where appropriate.
+- reject fail-closed as `IDEMPOTENCY_CONFLICT`;
+- do not interpret it as a new action;
+- retain auditable conflict/security evidence.
 
 ### Stale different action
 
 If a different action was created against an older client-observed state:
 
-- evaluate it against the current authoritative state,
-- accept only if it is still legal now,
-- otherwise reject as stale/illegal,
-- never roll authoritative state back to match the client.
+- evaluate it against current authoritative state/revision;
+- accept only if it is independently legal now;
+- otherwise reject stale/illegal;
+- never roll state back or silently remap the intent to a newer turn/question.
 
 ## Response loss
 
 If a transition commits but the response is lost:
 
-- a retry with the same action identity must resolve to the committed result,
-- the retry must not repeat score/attempt/claim side effects.
+- the atomic state/idempotency/domain-audit commit is still authoritative;
+- retry with the same action identity resolves to the committed result;
+- retry cannot repeat score/attempt/claim side effects.
 
-This requirement applies even if the caller cannot distinguish timeout-before-commit from timeout-after-commit.
+This requirement applies even when the caller cannot distinguish timeout-before-commit from timeout-after-commit.
 
 ## Duplicate system triggers
 
 Timeout/reveal/scheduled system triggers may be delivered more than once.
 
-Handlers must verify current authoritative state and trigger identity/revision before mutating.
+Handlers verify current authoritative state, trigger identity, timer identity and revision before mutating.
 
-A duplicate timeout after a question already advanced is a no-op/rejected stale trigger, not a second completion.
+A duplicate timeout after a question advanced is a no-op/stale trigger, not a second completion.
 
-A duplicate timed reveal must not consume another hidden position or generate another random draw.
+A duplicate timed reveal cannot consume another hidden position or generate another random draw.
 
 ## Reconnect
 
 Reconnect is state restoration, not entitlement restoration.
 
-It may return:
+It returns an authorized view generated from the latest committed durable revision, including where relevant:
 
-- current stage/question state,
-- active owner/eligibility,
-- attempts remaining,
-- visible/revealed state,
-- scores,
-- current authoritative deadlines,
-- effective dataset/policy version,
+- current stage/question state;
+- active owner/eligibility;
+- attempts remaining;
+- visible/revealed state;
+- scores;
+- current authoritative deadlines;
+- effective dataset/policy version;
 - revision/sequence needed to resume safely.
 
 Reconnect must not itself:
 
-- add attempts,
-- recreate steal entitlement,
-- extend an existing deadline,
-- reroll reveal order,
-- re-award score,
+- add attempts;
+- recreate steal entitlement;
+- extend an existing deadline;
+- reroll reveal order;
+- re-award score;
 - revert a terminal result.
 
 ## Stale snapshot handling
 
-An older snapshot/revision must never overwrite a newer committed state.
+An older snapshot/revision never overwrites newer committed state.
 
-If the persistence/runtime architecture allows concurrent writers, it must provide an equivalent to optimistic/pessimistic concurrency control sufficient to preserve INV-015.
+ADR-005 requires a monotonically advancing authoritative revision plus storage-level optimistic/serialization protection (or equivalent) so two writers targeting one revision cannot both commit.
 
-The specific mechanism is decided by ADR-005.
+A stale cache/snapshot is discarded/reloaded when a higher durable revision exists.
 
 ## Partial failure categories
 
-The implementation must explicitly test at least these conceptual windows:
+### F1 — Validation succeeded, atomic commit did not happen
 
-### F1 — Validation succeeded, commit did not happen
+No authoritative gameplay effect exists. The transaction is absent/rolled back. Retry may process as a first-seen action if durable idempotency evidence confirms no prior commit.
 
-No authoritative gameplay effect exists. Retry may process as a fresh first-seen action if the idempotency record confirms no commit.
+### F2 — Atomic commit succeeded, response lost
 
-### F2 — Authoritative state committed, response lost
+State, revision, required idempotency evidence and required domain/audit evidence are committed. Retry resolves idempotently to the existing result.
 
-Retry resolves idempotently to the committed result.
+### F3 — State update and required idempotency/domain-audit evidence would diverge
 
-### F3 — State mutation committed, required durable audit/event write uncertain
+ADR-005 forbids this as an accepted state. These effects belong to one atomic commit boundary. The observable result is either fully committed or not committed.
 
-The persistence design must recover without rolling back already visible authoritative facts incorrectly or duplicating the mutation. ADR-005 must define the transactional/outbox-or-equivalent strategy.
+A design that can expose "state committed but required replay/audit evidence missing" is non-conforming.
 
-### F4 — Durable audit/domain fact committed, in-memory/publication step failed
+### F4 — Commit succeeded, required downstream publication failed
 
-Recovery may republish/reconstruct non-authoritative downstream effects, but must not reapply the domain mutation.
+Gameplay remains committed. A transactional outbox (or equivalent same-commit durable delivery record) remains pending and retries publication.
 
-### F5 — Process restart between steps
+Duplicate publication is handled with stable message/event identity and cannot reapply domain mutation.
 
-Restart recovery must derive the one authoritative result from durable evidence. It must not guess by re-executing an unsafe mutation without replay guards.
+### F5 — Process restart before commit
+
+No accepted mutation exists; storage transaction rollback/non-visibility applies.
+
+### F6 — Process restart after commit but before response/publication
+
+Recovery reloads the latest materialized state/revision and idempotency evidence. The action is already committed; response can be reconstructed and pending outbox work continues separately.
+
+### F7 — stale cache survives restart/ownership transfer
+
+Durable higher revision wins. Stale memory cannot overwrite committed state.
 
 ## Consumer failure
 
-Experience/media/animation/haptic/telemetry consumer failure is isolated under INV-020.
+Experience/media/animation/haptic/telemetry consumer failure is isolated under INV-020 and ADR-008.
 
 A committed gameplay transition remains committed even when a presentation consumer fails.
 
-Consumer retry may replay presentation carefully according to ADR-008 semantics, but cannot mutate gameplay.
+Transient consumer retry cannot mutate gameplay. If durable eventual publication is required, it originates from ADR-005 outbox/equivalent rather than from uncommitted memory.
 
 ## Randomness failure/replay
 
-Gameplay-affecting random choices are initialized once for the logical Question according to #18.
+Gameplay-affecting random choices are initialized once according to the Authoritative Randomness contract.
 
-Recovery/retry must reuse the same persisted/derived authoritative choice and cannot draw again simply because a process restarted.
+The derived result/order is persisted before question activation. Recovery/retry reuses it and never redraws because a process restarted.
+
+Missing/corrupt authoritative randomization state for an already-active question fails closed rather than rerolling.
+
+## Timer failure/replay
+
+Timer identity/deadline is durable authoritative state under ADR-004 + ADR-005.
+
+A restarted worker restores the same deadline; it does not compute `now + duration`.
+
+Timeout callback duplication is safe because state/revision/timer identity are rechecked.
+
+## Score / entitlement failure safety
+
+Score-award identity and entitlement consumption are persisted within the atomic authoritative mutation boundary.
+
+- duplicate award attempts converge on the same immutable award identity/business key;
+- reconnect/restart cannot restore consumed entitlement;
+- response loss cannot cause a second award/consumption.
 
 ## Word-policy failure
 
 A competitive decision cannot silently fall back to a different dataset/policy version because the expected version is missing/corrupt.
 
-The exact recovery/fail-closed policy is owned by #3/#10, but version mismatch must be explicit and deterministic.
+The exact dataset recovery/update policy remains #3/#10, but version mismatch is explicit and deterministic.
 
 ## Audit requirements
 
-For committed/rejected mutations, the system should eventually be able to explain at least:
+For committed transitions, durable evidence can explain at least:
 
-- action identity,
-- actor/player context,
-- authoritative source revision,
-- final result/reason,
-- resulting revision,
-- causation for any score/entitlement change,
-- dataset/policy version where relevant.
+- action identity;
+- actor/player context;
+- authoritative source/result revisions;
+- transition/result/reason;
+- causation for score/entitlement change;
+- timer/deadline context when relevant;
+- dataset/policy version when relevant;
+- randomization/version reference when relevant.
 
-Detailed fields/retention/privacy are owned by #22.
+Rejected/security decisions may use separate bounded decision/security audit records rather than polluting the committed domain-transition stream.
+
+Detailed PII/redaction/calendar retention remains owned by #22.
 
 ## Verification matrix
 
-At minimum, #21 must eventually cover:
+At minimum #21 must cover:
 
-- same action/same payload replay,
-- same key/different payload conflict,
-- response loss after commit,
-- duplicate timeout,
-- duplicate claim,
-- reconnect after consumed entitlement,
-- restart after score commit,
-- stale snapshot update attempt,
-- consumer failure after domain commit,
-- randomness replay/restart,
+- same action/same payload replay;
+- same key/different payload conflict;
+- concurrent duplicate action delivery;
+- concurrent mutations on one revision;
+- rollback before commit;
+- crash after commit before response;
+- response loss then retry;
+- outbox publish failure/retry;
+- duplicate outbox delivery;
+- duplicate timeout;
+- duplicate claim;
+- reconnect after consumed entitlement;
+- restart after score commit;
+- stale snapshot overwrite attempt;
+- consumer failure after domain commit;
+- randomness replay/restart;
 - dataset version mismatch.
+
+## Related canonical sources
+
+- ADR-005 — Persistence, Snapshot and Event/Audit Strategy
+- ADR-004 — Authoritative Timer and Latency Policy
+- `docs/02-domain/intent-contract.md`
+- `docs/02-domain/authoritative-randomness.md`
+- `docs/04-architecture/competitive-security-and-abuse-model.md`

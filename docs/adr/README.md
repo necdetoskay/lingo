@@ -10,7 +10,7 @@ Architecture decisions are recorded here before implementation when they materia
 | ADR-002 | Backend/runtime architecture | Planned |
 | ADR-003 | Realtime multiplayer transport | Planned |
 | ADR-004 | Authoritative timer and latency policy | **Accepted** |
-| ADR-005 | Persistence and event/audit strategy | Planned |
+| ADR-005 | Persistence, snapshot and event/audit strategy | **Accepted** |
 | ADR-006 | Local word dataset storage and synchronization | Planned |
 | ADR-007 | PoC identity/authentication model | Planned |
 | ADR-008 | Game Experience Event System | Proposed |
@@ -18,6 +18,7 @@ Architecture decisions are recorded here before implementation when they materia
 ## Files
 
 - `ADR-004-authoritative-timer-and-latency-policy.md`
+- `ADR-005-persistence-snapshot-event-audit-strategy.md`
 - `ADR-008-game-experience-event-system.md`
 
 The remaining required ADR files are intentionally absent until their decisions are actually drafted; registry status must not imply that a missing ADR has been accepted.
