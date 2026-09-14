@@ -74,19 +74,25 @@ This gate is complemented by `docs/07-delivery/aegis-mur-hardening-plan.md` and 
 - [ ] Backend/runtime ADR
 - [ ] Realtime transport ADR
 - [x] ADR-004 authoritative timer/latency accepted
-- [ ] ADR-005 persistence/event-audit accepted
+- [x] ADR-005 persistence/snapshot/event-audit accepted
 - [ ] ADR-006 local word-dataset storage accepted
 - [ ] ADR-007 authentication/identity accepted
 - [ ] Experience Event System ADR-008 dependencies are satisfied and its final status is consistent
 
 ## Reliability / observability / privacy
 
-- [ ] Mutation + idempotency + durable audit/event crash-window semantics defined (#9)
-- [ ] Partial-failure/restart recovery semantics defined (#9)
+- [x] Materialized authoritative state is durable recovery authority (ADR-005)
+- [x] Mutation + revision + idempotency + required domain/audit evidence commit atomically (#9)
+- [x] Immutable score-award / entitlement integrity boundaries defined (#9)
+- [x] Transactional outbox or equivalent required for must-deliver post-commit publication (#9)
+- [x] Commit-before-response, response-loss and worker-restart recovery semantics defined (#9)
+- [x] Stale snapshot/cache cannot overwrite a higher durable revision (#9)
+- [x] Active timers restore existing deadline; they do not restart after recovery (#9)
+- [x] Active-question randomization state restores existing derived result; missing state fails closed (#9/#18)
 - [ ] Structured observability / correlation contract defined (#22)
-- [ ] Privacy/redaction/minimum-data rules defined (#22)
+- [ ] Privacy/redaction/minimum-data retention durations defined (#22)
 - [x] Security model prohibits raw credential/secret logging
-- [ ] Audit trail can explain score, ownership, timeout and validation decisions (#22)
+- [ ] Audit trail retention/field policy finalized (#22)
 
 ## Testing
 
@@ -101,8 +107,10 @@ This gate is complemented by `docs/07-delivery/aegis-mur-hardening-plan.md` and 
 - [ ] Canonical `INV-*` -> fixture/test mapping defined (#13/#16)
 - [x] Randomness test contract permits explicit derived reveal-order fixtures (#18)
 - [x] Security threat model defines required wrong-user/stale/replay/duplicate-connection attack cases (#17)
+- [x] ADR-005 defines required persistence/crash-window failure-injection cases (#9)
 - [ ] Executable fixed-order randomness fixtures implemented in Golden suite (#13)
 - [ ] Executable before/exact/after deadline vectors implemented in Golden suite (#4/#13)
+- [ ] Executable partial-failure/idempotency/recovery cases implemented (#21)
 - [ ] AEGIS/MUR adversarial qualification matrix/executable cases defined (#21)
 
 ## Delivery / supply chain
