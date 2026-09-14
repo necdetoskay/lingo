@@ -1,7 +1,7 @@
 # Lingo Domain Package
 
 Status: **Canonical foundation**  
-Version: 1.3
+Version: 1.4
 
 This directory contains framework-independent authoritative domain contracts for Lingo.
 
@@ -25,8 +25,9 @@ These documents define domain behavior while leaving unrelated unresolved decisi
 - Multiplayer lifecycle/reconnect: **resolved by `multiplayer-lifecycle.md` / #5**
 - Authoritative randomness/reveal-order: **resolved by `authoritative-randomness.md` / #18**
 - Persistence/snapshot/event-audit and crash-window semantics: **resolved by accepted ADR-005 / #9**
+- Identity credential/reconnect-token model: **resolved by accepted ADR-007 / #11**
+- Competitive security/fail-closed authority: **resolved by `competitive-security-and-abuse-model.md` / #17**
 - Word dataset storage/sync: #10
-- Identity credential/reconnect-token model: #11 (security/fail-closed boundaries already defined by #17)
 - Stage transition UX: #12
 
 ## Persistence boundary summary
@@ -40,8 +41,19 @@ Accepted competitive mutation semantics require:
 - transactional outbox or equivalent for must-deliver post-commit external publication;
 - stale cache/snapshot never overriding a higher durable revision.
 
+## Identity/security boundary summary
+
+The PoC uses guest-first server-issued identity:
+
+- display name/device ID are not authority;
+- match Player is server-bound to a PlayerSession lineage;
+- reconnect requires current server-issued high-entropy proof;
+- `securityVersion` controls revocation lineage;
+- `connectionGeneration` provides exactly one current mutation-authoritative connection generation;
+- future persistent account linking cannot rewrite active match identity.
+
 ## Verification
 
-Golden Game fixtures (#13) and AEGIS/MUR qualification (#21) must reference the stable invariant IDs from `invariants.md`, the `RAND-*` randomness invariants, and the `PERSIST-*` persistence invariants where applicable.
+Golden Game fixtures (#13) and AEGIS/MUR qualification (#21) must reference the stable invariant IDs from `invariants.md` plus applicable `RAND-*`, `PERSIST-*`, `SEC-*`, and `AUTH-*` invariants.
 
 Changes to canonical domain semantics require affected stage/ADR/test review before implementation changes.
