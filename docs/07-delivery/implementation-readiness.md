@@ -28,7 +28,10 @@ This gate is complemented by `docs/07-delivery/aegis-mur-hardening-plan.md` and 
 - [x] Replay/idempotency semantics defined
 - [x] Failure/replay semantics defined
 - [x] Multiplayer lifecycle/reconnect semantics defined (#5)
-- [ ] Authoritative randomness/reveal-order implementation contract accepted (#18)
+- [x] Authoritative randomness/reveal-order contract accepted (#18)
+- [x] One-draw/persist-derived-result semantics defined
+- [x] Reconnect/restart/duplicate reveal cannot re-roll active question randomness
+- [x] Future reveal-order/seed secrecy boundary defined
 - [ ] Canonical dependency/status integrity rules defined (#19)
 
 ## Word platform
@@ -88,7 +91,8 @@ This gate is complemented by `docs/07-delivery/aegis-mur-hardening-plan.md` and 
 - [ ] 3-player full-match fixture
 - [ ] 4-player full-match fixture
 - [ ] Canonical `INV-*` -> fixture/test mapping defined (#13/#16)
-- [ ] Fixed-seed randomness fixtures defined (#13/#18)
+- [x] Randomness test contract permits explicit derived reveal-order fixtures (#18)
+- [ ] Executable fixed-order randomness fixtures implemented in Golden suite (#13)
 - [ ] Executable before/exact/after deadline vectors implemented in Golden suite (#4/#13)
 - [ ] AEGIS/MUR adversarial qualification matrix defined (#21)
 
