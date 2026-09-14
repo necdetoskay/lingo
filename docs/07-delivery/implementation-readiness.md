@@ -46,7 +46,7 @@ This gate is complemented by `docs/07-delivery/aegis-mur-hardening-plan.md` and 
 - [ ] Dataset build/version process
 - [ ] Competitive effective word-policy version pinning finalized
 
-## Multiplayer
+## Multiplayer / competitive security
 
 - [x] Server-authoritative principle
 - [x] Claim-window / answer-window separation
@@ -56,10 +56,17 @@ This gate is complemented by `docs/07-delivery/aegis-mur-hardening-plan.md` and 
 - [x] Player-ready/start rules
 - [x] Lobby host privileges and non-authority boundaries
 - [x] Roster lock / no late join / PoC abandonment semantics
-- [ ] Duplicate connection/session takeover security behavior (#11/#17)
-- [ ] Stale/replayed session security behavior (#11/#17)
-- [ ] Competitive abuse/threat model defined (#17)
-- [ ] Realtime performance/fairness budgets defined (#20)
+- [x] Competitive Security & Abuse Threat Model accepted (#17)
+- [x] Server-resolved mutation authorization chain defined
+- [x] Session security/revocation version requirement defined
+- [x] Duplicate connection/takeover uses one current mutation-authoritative connection generation
+- [x] Old connection generation loses mutation authority after valid reconnect/takeover
+- [x] Stale/revoked session cannot regain authority via replay
+- [x] Cross-match/wrong-player mutation fail-closed semantics defined
+- [x] Client score/ownership/deadline/randomness fields are non-authoritative
+- [x] Bounded malformed/oversized/rate-abuse requirements defined
+- [ ] ADR-007 credential/account/guest/reconnect-token representation accepted (#11)
+- [ ] Realtime performance/fairness numeric budgets defined (#20)
 
 ## Architecture
 
@@ -78,6 +85,7 @@ This gate is complemented by `docs/07-delivery/aegis-mur-hardening-plan.md` and 
 - [ ] Partial-failure/restart recovery semantics defined (#9)
 - [ ] Structured observability / correlation contract defined (#22)
 - [ ] Privacy/redaction/minimum-data rules defined (#22)
+- [x] Security model prohibits raw credential/secret logging
 - [ ] Audit trail can explain score, ownership, timeout and validation decisions (#22)
 
 ## Testing
@@ -92,9 +100,10 @@ This gate is complemented by `docs/07-delivery/aegis-mur-hardening-plan.md` and 
 - [ ] 4-player full-match fixture
 - [ ] Canonical `INV-*` -> fixture/test mapping defined (#13/#16)
 - [x] Randomness test contract permits explicit derived reveal-order fixtures (#18)
+- [x] Security threat model defines required wrong-user/stale/replay/duplicate-connection attack cases (#17)
 - [ ] Executable fixed-order randomness fixtures implemented in Golden suite (#13)
 - [ ] Executable before/exact/after deadline vectors implemented in Golden suite (#4/#13)
-- [ ] AEGIS/MUR adversarial qualification matrix defined (#21)
+- [ ] AEGIS/MUR adversarial qualification matrix/executable cases defined (#21)
 
 ## Delivery / supply chain
 
