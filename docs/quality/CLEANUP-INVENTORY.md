@@ -5,7 +5,7 @@
 
 ## Assessed content
 
-The baseline contains no application source, dependency manifests, generated binaries, assets, workflows, or workflow runs. It contains `README.md` and 33 design/ADR documents for an unreleased 2–4 player, server-authoritative Classic Mode with warm-up, steal, duel, final, identity, realtime transport, security, and AEGIS/MUR readiness work.
+The baseline contains no application source, dependency manifests, generated binaries, assets, workflows, or workflow runs. It contains `README.md` and 26 design/ADR documents for an unreleased 2–4 player, server-authoritative Classic Mode with warm-up, steal, duel, final, identity, realtime transport, security, and AEGIS/MUR readiness work.
 
 Those documents are valuable historical design material but incompatible with the approved single-player, offline, Flutter + Rust V1. They are preserved unchanged on the backup branch and intentionally removed from this reset branch.
 
