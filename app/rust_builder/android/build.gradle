@@ -51,6 +51,6 @@ android {
 
 apply from: "../cargokit/gradle/plugin.gradle"
 cargokit {
-    manifestDir = "../../..\crates\lingo_core"
+    manifestDir = "../../../crates/lingo_core"
     libname = "lingo_core"
 }
