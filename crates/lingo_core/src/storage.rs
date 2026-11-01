@@ -261,7 +261,27 @@ impl LocalStore {
                 reason TEXT NOT NULL
             );
             ",
-        )
+        )?;
+        self.seed_approved_pilot_dictionary()
+    }
+
+    fn seed_approved_pilot_dictionary(&self) -> Result<()> {
+        for entry in crate::pilot_dictionary::approved_entries()
+            .map_err(|_| rusqlite::Error::InvalidQuery)?
+        {
+            self.connection.execute(
+                "INSERT OR IGNORE INTO dictionary_word (normalized_word, length, definition, part_of_speech, source, source_version, licence, difficulty, can_be_guess, can_be_answer)
+                 VALUES (?1, ?2, ?3, ?4, 'tdd-ai/hunspell-tr + original Lingo definition', '7302eca5f3652fe7ae3d3ec06c44697c97342b4e', 'MPL-2.0', ?5, 1, 1)",
+                params![
+                    entry.word,
+                    entry.word.chars().count() as u8,
+                    entry.definition,
+                    entry.part_of_speech,
+                    entry.difficulty,
+                ],
+            )?;
+        }
+        Ok(())
     }
 }
 
