@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:lingo_app/src/rust/api/game.dart';
 import 'package:lingo_app/src/rust/api/storage.dart';
 import 'package:lingo_app/src/rust/frb_generated.dart';
@@ -142,6 +143,7 @@ class _GameScreenState extends State<GameScreen> {
   String _message = '';
   List<int> _feedback = const [];
   Timer? _timer;
+  bool _soundEnabled = true;
 
   int get _now => DateTime.now().millisecondsSinceEpoch;
 
@@ -149,7 +151,19 @@ class _GameScreenState extends State<GameScreen> {
   void initState() {
     super.initState();
     _restoreOrStart();
+    _loadSoundPreference();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) => _sync());
+  }
+
+  Future<void> _loadSoundPreference() async {
+    try {
+      final snapshot = await progress();
+      if (mounted) {
+        setState(() => _soundEnabled = snapshot.soundEnabled);
+      }
+    } catch (_) {
+      // A failed preference read must not interrupt a round.
+    }
   }
 
   @override
@@ -229,6 +243,9 @@ class _GameScreenState extends State<GameScreen> {
                 ? ''
                 : 'Tebrikler! ${result.score} puan.';
       });
+      if (_soundEnabled && result.result == 'accepted') {
+        await SystemSound.play(SystemSoundType.click);
+      }
       _guess.clear();
     } catch (_) {
       if (mounted) setState(() => _message = 'Tahmin işlenemedi.');
