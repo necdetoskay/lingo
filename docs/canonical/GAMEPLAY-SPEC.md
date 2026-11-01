@@ -6,7 +6,7 @@ Lingo is a continuous single-player Turkish word game. The player chooses a 4-, 
 
 | Rule | Canonical behavior |
 | --- | --- |
-| First letter | Revealed and locked at round start |
+| First letter | Revealed at round start and required in every guess |
 | Attempts | Five per target word |
 | Attempt timer | 20 seconds of real elapsed time |
 | Skip | Not available |
@@ -16,15 +16,15 @@ Lingo is a continuous single-player Turkish word game. The player chooses a 4-, 
 | Fifth failed attempt | Ends round, reveals answer, resets streak |
 | Next round | Starts only after the player selects continue |
 
-The UI may animate outcomes, but the game core is the sole authority for acceptance, timer expiry, attempts, scores, locked letters, and terminal state.
+The UI may animate outcomes, but the game core is the sole authority for acceptance, timer expiry, attempts, scores, revealed-letter hints, and terminal state.
 
 ## Guess input and feedback
 
-A guess is a complete word reconstructed from the player's editable positions plus locked green positions. It must be present in the guess dictionary to be valid. A valid guess can differ from the answer.
+A guess is a complete dictionary word that begins with the revealed first letter. It must be present in the guess dictionary to be valid. A valid guess can differ from the answer.
 
 Feedback follows two-pass Wordle-style matching: exact-position matches are green first; remaining matching letters are yellow only while unmatched answer-letter counts remain; all other letters are gray. This avoids over-reporting repeated letters.
 
-Green positions become locked for all later guesses. Yellow letters are hints only and never become locked.
+Every green position remains visibly revealed as a persistent hint. Other than the first letter, revealed green letters are not mandatory in later guesses: the player may submit another word with a different letter in that position to test alternatives. Yellow letters are also hints only.
 
 ## Time and lifecycle
 

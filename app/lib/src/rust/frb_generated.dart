@@ -296,7 +296,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       attemptsRemaining: dco_decode_u_8(arr[2]),
       deadlineMs: dco_decode_i_64(arr[3]),
       status: dco_decode_String(arr[4]),
-      lockedLetters: dco_decode_list_opt_String(arr[5]),
+      revealedLetters: dco_decode_list_opt_String(arr[5]),
     );
   }
 
@@ -400,14 +400,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_attemptsRemaining = sse_decode_u_8(deserializer);
     var var_deadlineMs = sse_decode_i_64(deserializer);
     var var_status = sse_decode_String(deserializer);
-    var var_lockedLetters = sse_decode_list_opt_String(deserializer);
+    var var_revealedLetters = sse_decode_list_opt_String(deserializer);
     return RoundSnapshot(
         wordLength: var_wordLength,
         attemptsUsed: var_attemptsUsed,
         attemptsRemaining: var_attemptsRemaining,
         deadlineMs: var_deadlineMs,
         status: var_status,
-        lockedLetters: var_lockedLetters);
+        revealedLetters: var_revealedLetters);
   }
 
   @protected
@@ -513,7 +513,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_u_8(self.attemptsRemaining, serializer);
     sse_encode_i_64(self.deadlineMs, serializer);
     sse_encode_String(self.status, serializer);
-    sse_encode_list_opt_String(self.lockedLetters, serializer);
+    sse_encode_list_opt_String(self.revealedLetters, serializer);
   }
 
   @protected

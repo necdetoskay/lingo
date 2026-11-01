@@ -300,14 +300,14 @@ impl SseDecode for crate::api::game::RoundSnapshot {
         let mut var_attemptsRemaining = <u8>::sse_decode(deserializer);
         let mut var_deadlineMs = <i64>::sse_decode(deserializer);
         let mut var_status = <String>::sse_decode(deserializer);
-        let mut var_lockedLetters = <Vec<Option<String>>>::sse_decode(deserializer);
+        let mut var_revealedLetters = <Vec<Option<String>>>::sse_decode(deserializer);
         return crate::api::game::RoundSnapshot {
             word_length: var_wordLength,
             attempts_used: var_attemptsUsed,
             attempts_remaining: var_attemptsRemaining,
             deadline_ms: var_deadlineMs,
             status: var_status,
-            locked_letters: var_lockedLetters,
+            revealed_letters: var_revealedLetters,
         };
     }
 }
@@ -409,7 +409,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::game::RoundSnapshot {
             self.attempts_remaining.into_into_dart().into_dart(),
             self.deadline_ms.into_into_dart().into_dart(),
             self.status.into_into_dart().into_dart(),
-            self.locked_letters.into_into_dart().into_dart(),
+            self.revealed_letters.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -498,7 +498,7 @@ impl SseEncode for crate::api::game::RoundSnapshot {
         <u8>::sse_encode(self.attempts_remaining, serializer);
         <i64>::sse_encode(self.deadline_ms, serializer);
         <String>::sse_encode(self.status, serializer);
-        <Vec<Option<String>>>::sse_encode(self.locked_letters, serializer);
+        <Vec<Option<String>>>::sse_encode(self.revealed_letters, serializer);
     }
 }
 

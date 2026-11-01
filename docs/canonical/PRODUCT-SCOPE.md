@@ -7,7 +7,7 @@
 - Offline single-player continuous rounds
 - 4/5/6-letter Turkish words
 - Local SQLite dictionary, progress, statistics, and preferences
-- Locked-green-letter input, tile feedback, scoring, streaks, badges
+- Persistent revealed-letter hints, flexible guess input, tile feedback, scoring, streaks, badges
 - Optional definition display after every completed round
 - Sound effects and visual feedback
 

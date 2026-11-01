@@ -2,7 +2,7 @@
 
 ## Rust core
 
-Unit and state-machine tests cover Turkish normalization, dictionary acceptance, duplicate letters, locked positions, five-attempt scoring, idempotent terminal actions, concurrent guess/expiry ordering, and background reconciliation.
+Unit and state-machine tests cover Turkish normalization, dictionary acceptance, duplicate letters, first-letter enforcement, persistent revealed-letter hints with flexible later guesses, five-attempt scoring, idempotent terminal actions, concurrent guess/expiry ordering, and background reconciliation.
 
 ## Data pipeline
 
@@ -10,4 +10,4 @@ Validate field completeness, 4/5/6-letter length, normalization, duplicate entri
 
 ## Flutter and Android
 
-Widget/integration tests cover editable versus locked cells, result views, muted/unmuted feedback, persistence restore, and offline use. CI runs formatting/linting as configured, Rust tests, Flutter analysis/tests, and a debug Android build after application code exists.
+Widget/integration tests cover the required first-letter affordance, editable alternative guesses despite revealed hints, result views, muted/unmuted feedback, persistence restore, and offline use. CI runs formatting/linting as configured, Rust tests, Flutter analysis/tests, and a debug Android build after application code exists.

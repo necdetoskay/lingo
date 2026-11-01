@@ -55,7 +55,7 @@ class RoundSnapshot {
   final int attemptsRemaining;
   final PlatformInt64 deadlineMs;
   final String status;
-  final List<String?> lockedLetters;
+  final List<String?> revealedLetters;
 
   const RoundSnapshot({
     required this.wordLength,
@@ -63,7 +63,7 @@ class RoundSnapshot {
     required this.attemptsRemaining,
     required this.deadlineMs,
     required this.status,
-    required this.lockedLetters,
+    required this.revealedLetters,
   });
 
   @override
@@ -73,7 +73,7 @@ class RoundSnapshot {
       attemptsRemaining.hashCode ^
       deadlineMs.hashCode ^
       status.hashCode ^
-      lockedLetters.hashCode;
+      revealedLetters.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -85,5 +85,5 @@ class RoundSnapshot {
           attemptsRemaining == other.attemptsRemaining &&
           deadlineMs == other.deadlineMs &&
           status == other.status &&
-          lockedLetters == other.lockedLetters;
+          revealedLetters == other.revealedLetters;
 }

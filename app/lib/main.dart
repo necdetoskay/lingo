@@ -104,18 +104,28 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Future<void> _submit() async {
-    if (_guess.text.runes.length != widget.length) {
-      setState(() => _message = '${widget.length} harf girin.');
+    final revealed = _round?.revealedLetters;
+    final firstLetter =
+        revealed == null || revealed.isEmpty ? null : revealed.first;
+    if (firstLetter == null) {
+      setState(() => _message = 'Tur hazırlanıyor.');
+      return;
+    }
+    if (_guess.text.runes.length != widget.length - 1) {
+      setState(() => _message = '${widget.length - 1} harf daha girin.');
       return;
     }
     try {
-      final result = await submitGuess(guess: _guess.text, nowMs: _now);
+      final result = await submitGuess(
+        guess: '$firstLetter${_guess.text}',
+        nowMs: _now,
+      );
       if (!mounted) return;
       setState(() {
         _round = result.snapshot;
         _feedback = result.feedback;
         _message = result.result == 'invalid_word'
-            ? 'Bu kelime sözlükte yok veya açık harflere uymuyor.'
+            ? 'Bu kelime sözlükte yok veya ilk harfle başlamıyor.'
             : result.score == null
                 ? ''
                 : 'Tebrikler! ${result.score} puan.';
@@ -133,7 +143,7 @@ class _GameScreenState extends State<GameScreen> {
         ? 20
         : ((round.deadlineMs - _now) / 1000).ceil().clamp(0, 20);
     final letters =
-        round?.lockedLetters ?? List<String?>.filled(widget.length, null);
+        round?.revealedLetters ?? List<String?>.filled(widget.length, null);
     final isOver = round != null && round.status != 'in_progress';
     return Scaffold(
       appBar: AppBar(title: Text('${widget.length} harfli kelime')),
@@ -165,14 +175,26 @@ class _GameScreenState extends State<GameScreen> {
                             color: Colors.white, fontSize: 20)));
               })),
           const SizedBox(height: 18),
-          TextField(
-              controller: _guess,
-              maxLength: widget.length,
-              textCapitalization: TextCapitalization.characters,
-              textAlign: TextAlign.center,
-              decoration:
-                  InputDecoration(labelText: 'Tahminin', helperText: _message),
-              onSubmitted: (_) => _submit()),
+          Row(children: [
+            Container(
+                width: 44,
+                height: 48,
+                alignment: Alignment.center,
+                color: Colors.blueGrey,
+                child: Text(letters.first ?? '',
+                    style: const TextStyle(color: Colors.white, fontSize: 20))),
+            const SizedBox(width: 8),
+            Expanded(
+                child: TextField(
+                    controller: _guess,
+                    maxLength: widget.length - 1,
+                    textCapitalization: TextCapitalization.characters,
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration(
+                        labelText: 'Kalan ${widget.length - 1} harf',
+                        helperText: _message),
+                    onSubmitted: (_) => _submit())),
+          ]),
           FilledButton(
               onPressed: isOver ? _start : _submit,
               child: Text(isOver ? 'Yeni tur' : 'Tahmin et')),
