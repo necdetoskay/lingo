@@ -6,7 +6,7 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `active_store`, `length_snapshot`, `load_active_round`, `record_completed_round`, `save_active_round`, `snapshot`
+// These functions are ignored because they are not marked as `pub`: `active_store`, `definition_for`, `length_snapshot`, `load_active_round`, `record_completed_round`, `round_vocabulary`, `save_active_round`, `snapshot`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`
 
 Future<ProgressSnapshot> initializeStorage({required String path}) =>

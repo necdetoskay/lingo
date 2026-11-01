@@ -75,6 +75,18 @@ pub fn restore_round() -> Result<Option<RoundSnapshot>, String> {
     Ok(Some(snapshot))
 }
 
+/// Returns a reviewed definition only after a round has reached a terminal state.
+pub fn current_round_definition() -> Result<Option<String>, String> {
+    let guard = active_round().lock().expect("active round lock poisoned");
+    let Some(round) = guard.as_ref() else {
+        return Ok(None);
+    };
+    if round.status() == RoundStatus::InProgress {
+        return Ok(None);
+    }
+    crate::api::storage::definition_for(&round.answer())
+}
+
 fn record_terminal_transition(
     was_in_progress: bool,
     outcome: &GuessOutcome,

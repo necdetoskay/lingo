@@ -137,6 +137,19 @@ impl LocalStore {
         }))
     }
 
+    pub fn definition_for(&self, normalized_word: &str) -> Result<Option<String>> {
+        self.connection
+            .query_row(
+                "SELECT definition
+                 FROM dictionary_word
+                 WHERE normalized_word = ?1
+                   AND length(trim(definition)) > 0",
+                params![normalize(normalized_word)],
+                |row| row.get(0),
+            )
+            .optional()
+    }
+
     pub fn record_round(
         &mut self,
         score: Option<u16>,
@@ -351,5 +364,19 @@ mod tests {
             [],
         ).unwrap();
         assert!(store.round_vocabulary(4).unwrap().is_none());
+    }
+
+    #[test]
+    fn definition_lookup_uses_normalized_word() {
+        let store = LocalStore::in_memory().unwrap();
+        store.connection.execute(
+            "INSERT INTO dictionary_word (normalized_word, length, definition, source, source_version, licence, can_be_guess, can_be_answer)
+             VALUES ('KİTAP', 5, 'Okunan veya yazılan yaprakların bir araya getirilmiş bütünü.', 'review', 'v1', 'MPL-2.0', 1, 1)",
+            [],
+        ).unwrap();
+        assert_eq!(
+            store.definition_for("kitap").unwrap().as_deref(),
+            Some("Okunan veya yazılan yaprakların bir araya getirilmiş bütünü.")
+        );
     }
 }

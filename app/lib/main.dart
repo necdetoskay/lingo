@@ -152,6 +152,7 @@ class _GameScreenState extends State<GameScreen> {
   List<int> _feedback = const [];
   Timer? _timer;
   bool _soundEnabled = true;
+  String? _definition;
 
   int get _now => DateTime.now().millisecondsSinceEpoch;
 
@@ -189,6 +190,7 @@ class _GameScreenState extends State<GameScreen> {
           _round = round;
           _feedback = const [];
           _message = '';
+          _definition = null;
         });
       }
     } catch (error) {
@@ -264,6 +266,17 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  Future<void> _showDefinition() async {
+    try {
+      final definition = await currentRoundDefinition();
+      if (mounted) {
+        setState(() => _definition = definition ?? 'Tanım bu pakette yer almıyor.');
+      }
+    } catch (_) {
+      if (mounted) setState(() => _definition = 'Tanım yüklenemedi.');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final round = _round;
@@ -326,8 +339,14 @@ class _GameScreenState extends State<GameScreen> {
           if (round?.answer != null)
             Padding(
               padding: const EdgeInsets.only(top: 16),
-              child: Text('Yanıt: ${round!.answer}',
-                  style: Theme.of(context).textTheme.titleMedium),
+              child: Column(children: [
+                Text('Yanıt: ${round!.answer}',
+                    style: Theme.of(context).textTheme.titleMedium),
+                TextButton(
+                    onPressed: _showDefinition,
+                    child: const Text('Tanımı göster')),
+                if (_definition != null) Text(_definition!),
+              ]),
             ),
           FilledButton(
               onPressed: isOver ? _start : _submit,

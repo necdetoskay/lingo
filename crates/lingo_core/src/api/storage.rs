@@ -99,6 +99,16 @@ pub(crate) fn round_vocabulary(word_length: u8) -> Result<crate::storage::RoundV
         .ok_or_else(|| format!("no reviewed {word_length}-letter dictionary round is installed"))
 }
 
+pub(crate) fn definition_for(normalized_word: &str) -> Result<Option<String>, String> {
+    let guard = active_store().lock().expect("active store lock poisoned");
+    let store = guard
+        .as_ref()
+        .ok_or_else(|| "storage has not been initialized".to_owned())?;
+    store
+        .definition_for(normalized_word)
+        .map_err(|error| error.to_string())
+}
+
 fn active_store() -> &'static Mutex<Option<LocalStore>> {
     ACTIVE_STORE.get_or_init(|| Mutex::new(None))
 }
