@@ -2,11 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:lingo_app/src/rust/api/game.dart';
+import 'package:lingo_app/src/rust/api/storage.dart';
 import 'package:lingo_app/src/rust/frb_generated.dart';
+import 'package:path_provider/path_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await RustLib.init();
+  final supportDirectory = await getApplicationSupportDirectory();
+  await initializeStorage(path: '${supportDirectory.path}/lingo.sqlite3');
   runApp(const LingoApp());
 }
 
@@ -20,11 +24,56 @@ class LingoApp extends StatelessWidget {
       );
 }
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  bool _soundEnabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    try {
+      final snapshot = await progress();
+      if (mounted) {
+        setState(() => _soundEnabled = snapshot.soundEnabled);
+      }
+    } catch (_) {
+      // Widget tests intentionally run without native storage.
+    }
+  }
+
+  Future<void> _toggleSound() async {
+    try {
+      final snapshot = await setSoundEnabled(enabled: !_soundEnabled);
+      if (mounted) {
+        setState(() => _soundEnabled = snapshot.soundEnabled);
+      }
+    } catch (_) {
+      // Preference failures must not block gameplay.
+    }
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Lingo')),
+        appBar: AppBar(
+          title: const Text('Lingo'),
+          actions: [
+            IconButton(
+              tooltip: _soundEnabled ? 'Sesi kapat' : 'Sesi aç',
+              onPressed: _toggleSound,
+              icon: Icon(_soundEnabled ? Icons.volume_up : Icons.volume_off),
+            ),
+          ],
+        ),
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,

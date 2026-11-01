@@ -38,7 +38,9 @@ pub fn submit_guess(guess: String, now_ms: i64) -> Result<GuessSubmission, Strin
     let round = guard
         .as_mut()
         .ok_or_else(|| "start a round before submitting a guess".to_owned())?;
+    let was_in_progress = round.status() == RoundStatus::InProgress;
     let outcome = round.submit_guess(&guess, &dictionary(), clock(now_ms));
+    record_terminal_transition(was_in_progress, &outcome, round)?;
     Ok(submission(outcome, round))
 }
 
@@ -47,8 +49,29 @@ pub fn reconcile_round(now_ms: i64) -> Result<RoundSnapshot, String> {
     let round = guard
         .as_mut()
         .ok_or_else(|| "start a round before reconciling time".to_owned())?;
+    let was_in_progress = round.status() == RoundStatus::InProgress;
     round.reconcile_time(clock(now_ms));
+    if was_in_progress && round.status() == RoundStatus::Failed {
+        crate::api::storage::record_completed_round(None, None)?;
+    }
     Ok(snapshot(round))
+}
+
+fn record_terminal_transition(
+    was_in_progress: bool,
+    outcome: &GuessOutcome,
+    round: &Round,
+) -> Result<(), String> {
+    if !was_in_progress || round.status() == RoundStatus::InProgress {
+        return Ok(());
+    }
+    let (score, attempt) = match outcome {
+        GuessOutcome::Accepted { score, .. } => (*score, Some(round.attempts_used())),
+        GuessOutcome::TimedOut | GuessOutcome::InvalidWord | GuessOutcome::RoundComplete => {
+            (None, None)
+        }
+    };
+    crate::api::storage::record_completed_round(score, attempt)
 }
 
 fn active_round() -> &'static Mutex<Option<Round>> {
