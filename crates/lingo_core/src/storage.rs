@@ -125,7 +125,7 @@ impl LocalStore {
                        SELECT 1 FROM dictionary_restriction AS restriction
                        WHERE restriction.normalized_word = word.normalized_word
                    )
-                 ORDER BY word.normalized_word
+                 ORDER BY RANDOM()
                  LIMIT 1",
                 params![word_length],
                 |row| row.get::<_, String>(0),
@@ -364,6 +364,27 @@ mod tests {
             [],
         ).unwrap();
         assert!(store.round_vocabulary(4).unwrap().is_none());
+    }
+
+    #[test]
+    fn round_vocabulary_selects_only_eligible_targets() {
+        let store = LocalStore::in_memory().unwrap();
+        for (word, definition, answer) in [
+            ("KAPI", "Giriş bölümü.", 1),
+            ("KARE", "Dört eşit kenarlı şekil.", 1),
+            ("KASA", "Para saklanan kutu.", 0),
+        ] {
+            store.connection.execute(
+                "INSERT INTO dictionary_word (normalized_word, length, definition, source, source_version, licence, can_be_guess, can_be_answer)
+                 VALUES (?1, 4, ?2, 'review', 'v1', 'MPL-2.0', 1, ?3)",
+                params![word, definition, answer],
+            ).unwrap();
+        }
+        for _ in 0..20 {
+            let vocabulary = store.round_vocabulary(4).unwrap().unwrap();
+            assert!(["KAPI", "KARE"].contains(&vocabulary.target.as_str()));
+            assert!(vocabulary.guesses.contains("KASA"));
+        }
     }
 
     #[test]
