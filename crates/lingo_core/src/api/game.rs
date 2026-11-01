@@ -29,6 +29,7 @@ pub fn start_round(word_length: u8, now_ms: i64) -> Result<RoundSnapshot, String
         .ok_or_else(|| "word length must be 4, 5, or 6".to_owned())?;
     let round = Round::new(target, clock(now_ms)).map_err(str::to_owned)?;
     let snapshot = snapshot(&round);
+    crate::api::storage::save_active_round(&round)?;
     *active_round().lock().expect("active round lock poisoned") = Some(round);
     Ok(snapshot)
 }
@@ -41,6 +42,7 @@ pub fn submit_guess(guess: String, now_ms: i64) -> Result<GuessSubmission, Strin
     let was_in_progress = round.status() == RoundStatus::InProgress;
     let outcome = round.submit_guess(&guess, &dictionary(), clock(now_ms));
     record_terminal_transition(was_in_progress, &outcome, round)?;
+    crate::api::storage::save_active_round(round)?;
     Ok(submission(outcome, round))
 }
 
@@ -54,7 +56,17 @@ pub fn reconcile_round(now_ms: i64) -> Result<RoundSnapshot, String> {
     if was_in_progress && round.status() == RoundStatus::Failed {
         crate::api::storage::record_completed_round(None, None)?;
     }
+    crate::api::storage::save_active_round(round)?;
     Ok(snapshot(round))
+}
+
+pub fn restore_round() -> Result<Option<RoundSnapshot>, String> {
+    let Some(round) = crate::api::storage::load_active_round()? else {
+        return Ok(None);
+    };
+    let snapshot = snapshot(&round);
+    *active_round().lock().expect("active round lock poisoned") = Some(round);
+    Ok(Some(snapshot))
 }
 
 fn record_terminal_transition(

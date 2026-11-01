@@ -21,6 +21,9 @@ Future<GuessSubmission> submitGuess(
 Future<RoundSnapshot> reconcileRound({required PlatformInt64 nowMs}) =>
     RustLib.instance.api.crateApiGameReconcileRound(nowMs: nowMs);
 
+Future<RoundSnapshot?> restoreRound() =>
+    RustLib.instance.api.crateApiGameRestoreRound();
+
 class GuessSubmission {
   final String result;
   final Uint8List feedback;

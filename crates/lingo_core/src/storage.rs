@@ -1,6 +1,8 @@
 //! The sole SQLite access point for local player data and packaged dictionaries.
 
-use rusqlite::{params, Connection, Result, Transaction};
+use rusqlite::{params, Connection, OptionalExtension, Result, Transaction};
+
+use crate::{PersistedRound, Round};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PlayerProgress {
@@ -92,6 +94,29 @@ impl LocalStore {
         self.progress()
     }
 
+    pub fn save_pending_round(&self, round: &Round) -> Result<()> {
+        let persisted = round.persistable();
+        self.connection.execute(
+            "INSERT INTO pending_round (id, target, revealed_positions, attempts_used, deadline_ms, status) VALUES (1, ?1, ?2, ?3, ?4, ?5) ON CONFLICT(id) DO UPDATE SET target = excluded.target, revealed_positions = excluded.revealed_positions, attempts_used = excluded.attempts_used, deadline_ms = excluded.deadline_ms, status = excluded.status",
+            params![persisted.target, persisted.revealed_positions, persisted.attempts_used, persisted.deadline_ms, persisted.status],
+        )?;
+        Ok(())
+    }
+
+    pub fn load_pending_round(&self) -> Result<Option<Round>> {
+        let raw = self.connection.query_row(
+            "SELECT target, revealed_positions, attempts_used, deadline_ms, status FROM pending_round WHERE id = 1",
+            [],
+            |row| Ok(PersistedRound { target: row.get(0)?, revealed_positions: row.get(1)?, attempts_used: row.get(2)?, deadline_ms: row.get(3)?, status: row.get(4)? }),
+        ).optional()?;
+        match raw {
+            Some(raw) => Round::from_persisted(raw)
+                .map(Some)
+                .map_err(|_| rusqlite::Error::InvalidQuery),
+            None => Ok(None),
+        }
+    }
+
     fn migrate(&self) -> Result<()> {
         self.connection.execute_batch(
             "
@@ -109,6 +134,14 @@ impl LocalStore {
             CREATE TABLE IF NOT EXISTS badge (
                 code TEXT PRIMARY KEY NOT NULL,
                 awarded_at_ms INTEGER NOT NULL DEFAULT 0
+            );
+            CREATE TABLE IF NOT EXISTS pending_round (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                target TEXT NOT NULL,
+                revealed_positions TEXT NOT NULL,
+                attempts_used INTEGER NOT NULL,
+                deadline_ms INTEGER NOT NULL,
+                status TEXT NOT NULL
             );
             CREATE TABLE IF NOT EXISTS dictionary_word (
                 normalized_word TEXT PRIMARY KEY NOT NULL,
@@ -178,5 +211,17 @@ mod tests {
         assert_eq!(progress.failed_rounds, 1);
         store.set_sound_enabled(false).unwrap();
         assert!(!store.progress().unwrap().sound_enabled);
+    }
+
+    #[test]
+    fn pending_round_round_trips_with_revealed_hints() {
+        let store = LocalStore::in_memory().unwrap();
+        let round = Round::new("KALEM", 123).unwrap();
+        store.save_pending_round(&round).unwrap();
+        let restored = store.load_pending_round().unwrap().unwrap();
+        assert_eq!(restored.answer(), "KALEM");
+        assert_eq!(restored.attempts_used(), 0);
+        assert_eq!(restored.deadline_ms(), 20_123);
+        assert_eq!(restored.revealed_positions()[0], Some('K'));
     }
 }

@@ -43,6 +43,15 @@ pub struct Round {
     status: RoundStatus,
 }
 
+#[derive(Debug, Clone)]
+pub(crate) struct PersistedRound {
+    pub target: String,
+    pub revealed_positions: String,
+    pub attempts_used: u8,
+    pub deadline_ms: u64,
+    pub status: String,
+}
+
 impl Round {
     pub fn new(target: &str, now_ms: u64) -> Result<Self, &'static str> {
         let target: Vec<char> = normalize(target).chars().collect();
@@ -74,6 +83,54 @@ impl Round {
     }
     pub fn revealed_positions(&self) -> &[Option<char>] {
         &self.revealed_positions
+    }
+
+    pub(crate) fn persistable(&self) -> PersistedRound {
+        PersistedRound {
+            target: self.answer(),
+            revealed_positions: self
+                .revealed_positions
+                .iter()
+                .map(|letter| letter.unwrap_or('_'))
+                .collect(),
+            attempts_used: self.attempts_used,
+            deadline_ms: self.deadline_ms,
+            status: match self.status {
+                RoundStatus::InProgress => "in_progress",
+                RoundStatus::Won => "won",
+                RoundStatus::Failed => "failed",
+            }
+            .to_owned(),
+        }
+    }
+
+    pub(crate) fn from_persisted(value: PersistedRound) -> Result<Self, &'static str> {
+        let target: Vec<char> = normalize(&value.target).chars().collect();
+        let revealed_positions: Vec<Option<char>> = value
+            .revealed_positions
+            .chars()
+            .map(|letter| if letter == '_' { None } else { Some(letter) })
+            .collect();
+        if !(4..=6).contains(&target.len())
+            || target.len() != revealed_positions.len()
+            || value.attempts_used > ATTEMPT_LIMIT
+            || revealed_positions.first().copied().flatten() != target.first().copied()
+        {
+            return Err("invalid persisted round");
+        }
+        let status = match value.status.as_str() {
+            "in_progress" => RoundStatus::InProgress,
+            "won" => RoundStatus::Won,
+            "failed" => RoundStatus::Failed,
+            _ => return Err("invalid persisted round status"),
+        };
+        Ok(Self {
+            target,
+            revealed_positions,
+            attempts_used: value.attempts_used,
+            deadline_ms: value.deadline_ms,
+            status,
+        })
     }
 
     pub fn submit_guess(

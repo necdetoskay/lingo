@@ -1,6 +1,7 @@
 use std::sync::{Mutex, OnceLock};
 
 use crate::storage::{LocalStore, PlayerProgress};
+use crate::Round;
 
 static ACTIVE_STORE: OnceLock<Mutex<Option<LocalStore>>> = OnceLock::new();
 
@@ -56,6 +57,26 @@ pub(crate) fn record_completed_round(
             .map_err(|error| error.to_string())?;
     }
     Ok(())
+}
+
+pub(crate) fn save_active_round(round: &Round) -> Result<(), String> {
+    let guard = active_store().lock().expect("active store lock poisoned");
+    if let Some(store) = guard.as_ref() {
+        store
+            .save_pending_round(round)
+            .map_err(|error| error.to_string())?;
+    }
+    Ok(())
+}
+
+pub(crate) fn load_active_round() -> Result<Option<Round>, String> {
+    let guard = active_store().lock().expect("active store lock poisoned");
+    let store = guard
+        .as_ref()
+        .ok_or_else(|| "storage has not been initialized".to_owned())?;
+    store
+        .load_pending_round()
+        .map_err(|error| error.to_string())
 }
 
 fn active_store() -> &'static Mutex<Option<LocalStore>> {

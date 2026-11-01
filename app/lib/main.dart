@@ -34,6 +34,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool _soundEnabled = true;
   ProgressSnapshot? _progress;
+  RoundSnapshot? _pendingRound;
 
   @override
   void initState() {
@@ -44,10 +45,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadPreferences() async {
     try {
       final snapshot = await progress();
+      final pendingRound = await restoreRound();
       if (mounted) {
         setState(() {
           _soundEnabled = snapshot.soundEnabled;
           _progress = snapshot;
+          _pendingRound = pendingRound;
         });
       }
     } catch (_) {
@@ -92,6 +95,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 12),
+              if (_pendingRound != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: OutlinedButton(
+                    onPressed: () async {
+                      await Navigator.of(context).push(MaterialPageRoute<void>(
+                          builder: (_) => GameScreen(
+                              length: _pendingRound!.wordLength,
+                              resume: true)));
+                      await _loadPreferences();
+                    },
+                    child: const Text('Devam et'),
+                  ),
+                ),
               for (final length in [4, 5, 6])
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
@@ -111,8 +128,9 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class GameScreen extends StatefulWidget {
-  const GameScreen({required this.length, super.key});
+  const GameScreen({required this.length, this.resume = false, super.key});
   final int length;
+  final bool resume;
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -130,7 +148,7 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
-    _start();
+    _restoreOrStart();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) => _sync());
   }
 
@@ -153,6 +171,24 @@ class _GameScreenState extends State<GameScreen> {
       }
     } catch (_) {
       if (mounted) setState(() => _message = 'Oyun motoru başlatılamadı.');
+    }
+  }
+
+  Future<void> _restoreOrStart() async {
+    if (!widget.resume) {
+      await _start();
+      return;
+    }
+    try {
+      final round = await restoreRound();
+      if (round == null) {
+        await _start();
+      } else if (mounted) {
+        setState(() => _round = round);
+        await _sync();
+      }
+    } catch (_) {
+      await _start();
     }
   }
 
