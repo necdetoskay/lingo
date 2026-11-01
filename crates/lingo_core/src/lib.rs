@@ -2,6 +2,7 @@
 
 pub mod api;
 mod frb_generated;
+pub mod storage;
 
 use std::collections::HashSet;
 

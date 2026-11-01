@@ -10,3 +10,4 @@ crate-type = ["cdylib", "staticlib", "lib"]
 
 [dependencies]
 flutter_rust_bridge = "=2.13.0"
+rusqlite = { version = "0.32", features = ["bundled"] }
