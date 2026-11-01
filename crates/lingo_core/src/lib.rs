@@ -44,7 +44,7 @@ impl Round {
 
     pub fn submit_guess(&mut self, guess: &str, valid_words: &HashSet<String>, now_ms: u64) -> GuessOutcome {
         if self.status != RoundStatus::InProgress { return GuessOutcome::RoundComplete; }
-        if now_ms > self.deadline_ms { return self.expire(now_ms); }
+        if now_ms > self.deadline_ms { return self.expire(); }
         let normalized = normalize(guess);
         let letters: Vec<char> = normalized.chars().collect();
         if letters.len() != self.target.len() || !valid_words.contains(&normalized) { return GuessOutcome::InvalidWord; }
@@ -66,15 +66,15 @@ impl Round {
     pub fn reconcile_time(&mut self, now_ms: u64) -> u8 {
         let mut expired = 0;
         while self.status == RoundStatus::InProgress && now_ms > self.deadline_ms {
-            self.expire(self.deadline_ms + 1); expired += 1;
+            self.expire(); expired += 1;
         }
         expired
     }
 
-    fn expire(&mut self, now_ms: u64) -> GuessOutcome {
+    fn expire(&mut self) -> GuessOutcome {
         self.attempts_used += 1;
         if self.attempts_used == ATTEMPT_LIMIT { self.status = RoundStatus::Failed; }
-        else { self.deadline_ms = now_ms + ATTEMPT_DURATION_MS; }
+        else { self.deadline_ms += ATTEMPT_DURATION_MS; }
         GuessOutcome::TimedOut
     }
 }
