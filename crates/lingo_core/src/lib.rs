@@ -2,6 +2,7 @@
 
 pub mod api;
 mod frb_generated;
+mod pilot_dictionary;
 pub mod storage;
 
 use std::collections::HashSet;

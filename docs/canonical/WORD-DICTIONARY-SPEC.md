@@ -20,6 +20,8 @@ Only normalized Turkish words of exactly 4, 5, or 6 letters qualify. The pipelin
 
 The first pilot contains 150 reviewed answers: 50 per length. It is not a production-sized vocabulary. A source is not accepted until licence, attribution, redistribution, transformation, and share-alike implications have been reviewed. Kaikki/Turkish Wiktionary remains a candidate, not an approved source.
 
-The candidate guess-list source is [tdd-ai/hunspell-tr](https://github.com/tdd-ai/hunspell-tr), which declares MPL-2.0. It may supply candidates only after the pinned source revision and required notices are recorded. It does not supply the required Turkish definitions for answers, so it cannot by itself approve an answer-pool entry. The installed runtime selects only rows marked for both guessing and answers, with a non-empty definition and no restriction record; it has no fixture or online fallback.
+The approved word-form source is [tdd-ai/hunspell-tr](https://github.com/tdd-ai/hunspell-tr), revision `7302eca5f3652fe7ae3d3ec06c44697c97342b4e` (2023-12-30), which declares MPL-2.0. It supplies word-form candidates only. It does not supply the required Turkish definitions for answers, so it cannot by itself approve an answer-pool entry. The 150 entries in `data/pilot-candidates.tsv` use newly written Turkish candidate definitions and remain excluded until their individual review state is `approved`.
+
+The installed runtime selects only approved rows marked for both guessing and answers, with a non-empty definition and no restriction record; it has no fixture or online fallback.
 
 The runtime never fetches or scrapes words. Dataset build provenance and version are retained so an installed dictionary can be identified and reproduced.
