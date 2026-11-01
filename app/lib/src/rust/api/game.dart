@@ -6,7 +6,7 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `active_round`, `clock`, `dictionary`, `snapshot`, `submission`, `target_for_length`
+// These functions are ignored because they are not marked as `pub`: `active_round`, `clock`, `dictionary`, `record_terminal_transition`, `snapshot`, `submission`, `target_for_length`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`
 
 Future<RoundSnapshot> startRound(
@@ -20,6 +20,9 @@ Future<GuessSubmission> submitGuess(
 
 Future<RoundSnapshot> reconcileRound({required PlatformInt64 nowMs}) =>
     RustLib.instance.api.crateApiGameReconcileRound(nowMs: nowMs);
+
+Future<RoundSnapshot?> restoreRound() =>
+    RustLib.instance.api.crateApiGameRestoreRound();
 
 class GuessSubmission {
   final String result;
@@ -55,7 +58,8 @@ class RoundSnapshot {
   final int attemptsRemaining;
   final PlatformInt64 deadlineMs;
   final String status;
-  final List<String?> lockedLetters;
+  final String? answer;
+  final List<String?> revealedLetters;
 
   const RoundSnapshot({
     required this.wordLength,
@@ -63,7 +67,8 @@ class RoundSnapshot {
     required this.attemptsRemaining,
     required this.deadlineMs,
     required this.status,
-    required this.lockedLetters,
+    this.answer,
+    required this.revealedLetters,
   });
 
   @override
@@ -73,7 +78,8 @@ class RoundSnapshot {
       attemptsRemaining.hashCode ^
       deadlineMs.hashCode ^
       status.hashCode ^
-      lockedLetters.hashCode;
+      answer.hashCode ^
+      revealedLetters.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -85,5 +91,6 @@ class RoundSnapshot {
           attemptsRemaining == other.attemptsRemaining &&
           deadlineMs == other.deadlineMs &&
           status == other.status &&
-          lockedLetters == other.lockedLetters;
+          answer == other.answer &&
+          revealedLetters == other.revealedLetters;
 }
