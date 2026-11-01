@@ -1,7 +1,6 @@
-use std::collections::HashSet;
 use std::sync::{Mutex, OnceLock};
 
-use crate::{normalize, GuessOutcome, Round, RoundStatus};
+use crate::{GuessOutcome, Round, RoundStatus};
 
 static ACTIVE_ROUND: OnceLock<Mutex<Option<Round>>> = OnceLock::new();
 
@@ -25,9 +24,11 @@ pub struct GuessSubmission {
 }
 
 pub fn start_round(word_length: u8, now_ms: i64) -> Result<RoundSnapshot, String> {
-    let target = target_for_length(word_length)
-        .ok_or_else(|| "word length must be 4, 5, or 6".to_owned())?;
-    let round = Round::new(target, clock(now_ms)).map_err(str::to_owned)?;
+    if !(4..=6).contains(&word_length) {
+        return Err("word length must be 4, 5, or 6".to_owned());
+    }
+    let vocabulary = crate::api::storage::round_vocabulary(word_length)?;
+    let round = Round::new(&vocabulary.target, clock(now_ms)).map_err(str::to_owned)?;
     let snapshot = snapshot(&round);
     crate::api::storage::save_active_round(&round)?;
     *active_round().lock().expect("active round lock poisoned") = Some(round);
@@ -40,7 +41,8 @@ pub fn submit_guess(guess: String, now_ms: i64) -> Result<GuessSubmission, Strin
         .as_mut()
         .ok_or_else(|| "start a round before submitting a guess".to_owned())?;
     let was_in_progress = round.status() == RoundStatus::InProgress;
-    let outcome = round.submit_guess(&guess, &dictionary(), clock(now_ms));
+    let vocabulary = crate::api::storage::round_vocabulary(round.revealed_positions().len() as u8)?;
+    let outcome = round.submit_guess(&guess, &vocabulary.guesses, clock(now_ms));
     record_terminal_transition(was_in_progress, &outcome, round)?;
     crate::api::storage::save_active_round(round)?;
     Ok(submission(outcome, round))
@@ -73,6 +75,18 @@ pub fn restore_round() -> Result<Option<RoundSnapshot>, String> {
     Ok(Some(snapshot))
 }
 
+/// Returns a reviewed definition only after a round has reached a terminal state.
+pub fn current_round_definition() -> Result<Option<String>, String> {
+    let guard = active_round().lock().expect("active round lock poisoned");
+    let Some(round) = guard.as_ref() else {
+        return Ok(None);
+    };
+    if round.status() == RoundStatus::InProgress {
+        return Ok(None);
+    }
+    crate::api::storage::definition_for(&round.answer())
+}
+
 fn record_terminal_transition(
     was_in_progress: bool,
     outcome: &GuessOutcome,
@@ -100,24 +114,6 @@ fn active_round() -> &'static Mutex<Option<Round>> {
 
 fn clock(now_ms: i64) -> u64 {
     now_ms.max(0) as u64
-}
-
-fn target_for_length(word_length: u8) -> Option<&'static str> {
-    match word_length {
-        4 => Some("KAPI"),
-        5 => Some("KALEM"),
-        6 => Some("KELİME"),
-        _ => None,
-    }
-}
-
-fn dictionary() -> HashSet<String> {
-    [
-        "KAPI", "KARE", "KASA", "KALEM", "KALAS", "KİTAP", "KELİME", "KEMER",
-    ]
-    .into_iter()
-    .map(normalize)
-    .collect()
 }
 
 fn snapshot(round: &Round) -> RoundSnapshot {

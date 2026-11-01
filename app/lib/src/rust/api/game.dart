@@ -6,7 +6,7 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `active_round`, `clock`, `dictionary`, `record_terminal_transition`, `snapshot`, `submission`, `target_for_length`
+// These functions are ignored because they are not marked as `pub`: `active_round`, `clock`, `record_terminal_transition`, `snapshot`, `submission`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`
 
 Future<RoundSnapshot> startRound(
@@ -23,6 +23,10 @@ Future<RoundSnapshot> reconcileRound({required PlatformInt64 nowMs}) =>
 
 Future<RoundSnapshot?> restoreRound() =>
     RustLib.instance.api.crateApiGameRestoreRound();
+
+/// Returns a reviewed definition only after a round has reached a terminal state.
+Future<String?> currentRoundDefinition() =>
+    RustLib.instance.api.crateApiGameCurrentRoundDefinition();
 
 class GuessSubmission {
   final String result;
