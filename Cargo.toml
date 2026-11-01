@@ -1,0 +1,3 @@
+[workspace]
+members = ["crates/lingo_core"]
+resolver = "2"
