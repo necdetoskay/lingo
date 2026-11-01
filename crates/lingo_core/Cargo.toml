@@ -6,3 +6,7 @@ edition = "2021"
 [lib]
 name = "lingo_core"
 path = "src/lib.rs"
+crate-type = ["cdylib", "staticlib", "lib"]
+
+[dependencies]
+flutter_rust_bridge = "=2.13.0"

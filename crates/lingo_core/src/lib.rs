@@ -1,5 +1,8 @@
 //! Deterministic, UI-independent rules for the Lingo V1 game loop.
 
+pub mod api;
+mod frb_generated;
+
 use std::collections::HashSet;
 
 pub const ATTEMPT_LIMIT: u8 = 5;
