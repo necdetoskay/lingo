@@ -6,8 +6,8 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `active_store`, `load_active_round`, `record_completed_round`, `save_active_round`, `snapshot`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`
+// These functions are ignored because they are not marked as `pub`: `active_store`, `length_snapshot`, `load_active_round`, `record_completed_round`, `save_active_round`, `snapshot`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`
 
 Future<ProgressSnapshot> initializeStorage({required String path}) =>
     RustLib.instance.api.crateApiStorageInitializeStorage(path: path);
@@ -18,6 +18,31 @@ Future<ProgressSnapshot> progress() =>
 Future<ProgressSnapshot> setSoundEnabled({required bool enabled}) =>
     RustLib.instance.api.crateApiStorageSetSoundEnabled(enabled: enabled);
 
+class LengthStatsSnapshot {
+  final int wordLength;
+  final int solvedRounds;
+  final int failedRounds;
+
+  const LengthStatsSnapshot({
+    required this.wordLength,
+    required this.solvedRounds,
+    required this.failedRounds,
+  });
+
+  @override
+  int get hashCode =>
+      wordLength.hashCode ^ solvedRounds.hashCode ^ failedRounds.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LengthStatsSnapshot &&
+          runtimeType == other.runtimeType &&
+          wordLength == other.wordLength &&
+          solvedRounds == other.solvedRounds &&
+          failedRounds == other.failedRounds;
+}
+
 class ProgressSnapshot {
   final int totalScore;
   final int currentStreak;
@@ -26,6 +51,7 @@ class ProgressSnapshot {
   final int failedRounds;
   final bool soundEnabled;
   final List<String> badges;
+  final List<LengthStatsSnapshot> lengthStats;
 
   const ProgressSnapshot({
     required this.totalScore,
@@ -35,6 +61,7 @@ class ProgressSnapshot {
     required this.failedRounds,
     required this.soundEnabled,
     required this.badges,
+    required this.lengthStats,
   });
 
   @override
@@ -45,7 +72,8 @@ class ProgressSnapshot {
       solvedRounds.hashCode ^
       failedRounds.hashCode ^
       soundEnabled.hashCode ^
-      badges.hashCode;
+      badges.hashCode ^
+      lengthStats.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -58,5 +86,6 @@ class ProgressSnapshot {
           solvedRounds == other.solvedRounds &&
           failedRounds == other.failedRounds &&
           soundEnabled == other.soundEnabled &&
-          badges == other.badges;
+          badges == other.badges &&
+          lengthStats == other.lengthStats;
 }

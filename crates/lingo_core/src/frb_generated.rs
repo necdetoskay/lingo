@@ -383,6 +383,20 @@ impl SseDecode for i64 {
     }
 }
 
+impl SseDecode for crate::api::storage::LengthStatsSnapshot {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_wordLength = <u8>::sse_decode(deserializer);
+        let mut var_solvedRounds = <u32>::sse_decode(deserializer);
+        let mut var_failedRounds = <u32>::sse_decode(deserializer);
+        return crate::api::storage::LengthStatsSnapshot {
+            word_length: var_wordLength,
+            solved_rounds: var_solvedRounds,
+            failed_rounds: var_failedRounds,
+        };
+    }
+}
+
 impl SseDecode for Vec<String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -390,6 +404,20 @@ impl SseDecode for Vec<String> {
         let mut ans_ = Vec::with_capacity(len_ as usize);
         for idx_ in 0..len_ {
             ans_.push(<String>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::storage::LengthStatsSnapshot> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::storage::LengthStatsSnapshot>::sse_decode(
+                deserializer,
+            ));
         }
         return ans_;
     }
@@ -462,6 +490,8 @@ impl SseDecode for crate::api::storage::ProgressSnapshot {
         let mut var_failedRounds = <u32>::sse_decode(deserializer);
         let mut var_soundEnabled = <bool>::sse_decode(deserializer);
         let mut var_badges = <Vec<String>>::sse_decode(deserializer);
+        let mut var_lengthStats =
+            <Vec<crate::api::storage::LengthStatsSnapshot>>::sse_decode(deserializer);
         return crate::api::storage::ProgressSnapshot {
             total_score: var_totalScore,
             current_streak: var_currentStreak,
@@ -470,6 +500,7 @@ impl SseDecode for crate::api::storage::ProgressSnapshot {
             failed_rounds: var_failedRounds,
             sound_enabled: var_soundEnabled,
             badges: var_badges,
+            length_stats: var_lengthStats,
         };
     }
 }
@@ -589,6 +620,28 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::game::GuessSubmission>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::storage::LengthStatsSnapshot {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.word_length.into_into_dart().into_dart(),
+            self.solved_rounds.into_into_dart().into_dart(),
+            self.failed_rounds.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::storage::LengthStatsSnapshot
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::storage::LengthStatsSnapshot>
+    for crate::api::storage::LengthStatsSnapshot
+{
+    fn into_into_dart(self) -> crate::api::storage::LengthStatsSnapshot {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::storage::ProgressSnapshot {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -599,6 +652,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::storage::ProgressSnapshot {
             self.failed_rounds.into_into_dart().into_dart(),
             self.sound_enabled.into_into_dart().into_dart(),
             self.badges.into_into_dart().into_dart(),
+            self.length_stats.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -672,12 +726,31 @@ impl SseEncode for i64 {
     }
 }
 
+impl SseEncode for crate::api::storage::LengthStatsSnapshot {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <u8>::sse_encode(self.word_length, serializer);
+        <u32>::sse_encode(self.solved_rounds, serializer);
+        <u32>::sse_encode(self.failed_rounds, serializer);
+    }
+}
+
 impl SseEncode for Vec<String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <String>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::storage::LengthStatsSnapshot> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::storage::LengthStatsSnapshot>::sse_encode(item, serializer);
         }
     }
 }
@@ -742,6 +815,7 @@ impl SseEncode for crate::api::storage::ProgressSnapshot {
         <u32>::sse_encode(self.failed_rounds, serializer);
         <bool>::sse_encode(self.sound_enabled, serializer);
         <Vec<String>>::sse_encode(self.badges, serializer);
+        <Vec<crate::api::storage::LengthStatsSnapshot>>::sse_encode(self.length_stats, serializer);
     }
 }
 

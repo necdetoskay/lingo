@@ -1,6 +1,6 @@
 use std::sync::{Mutex, OnceLock};
 
-use crate::storage::{LocalStore, PlayerProgress};
+use crate::storage::{LengthStats, LocalStore, PlayerProgress};
 use crate::Round;
 
 static ACTIVE_STORE: OnceLock<Mutex<Option<LocalStore>>> = OnceLock::new();
@@ -14,6 +14,14 @@ pub struct ProgressSnapshot {
     pub failed_rounds: u32,
     pub sound_enabled: bool,
     pub badges: Vec<String>,
+    pub length_stats: Vec<LengthStatsSnapshot>,
+}
+
+#[derive(Clone)]
+pub struct LengthStatsSnapshot {
+    pub word_length: u8,
+    pub solved_rounds: u32,
+    pub failed_rounds: u32,
 }
 
 pub fn initialize_storage(path: String) -> Result<ProgressSnapshot, String> {
@@ -49,11 +57,12 @@ pub fn set_sound_enabled(enabled: bool) -> Result<ProgressSnapshot, String> {
 pub(crate) fn record_completed_round(
     score: Option<u16>,
     attempt: Option<u8>,
+    word_length: u8,
 ) -> Result<(), String> {
     let mut guard = active_store().lock().expect("active store lock poisoned");
     if let Some(store) = guard.as_mut() {
         store
-            .record_round(score, attempt)
+            .record_round(score, attempt, word_length)
             .map_err(|error| error.to_string())?;
     }
     Ok(())
@@ -92,5 +101,18 @@ fn snapshot(progress: PlayerProgress) -> ProgressSnapshot {
         failed_rounds: progress.failed_rounds,
         sound_enabled: progress.sound_enabled,
         badges: progress.badges,
+        length_stats: progress
+            .length_stats
+            .into_iter()
+            .map(length_snapshot)
+            .collect(),
+    }
+}
+
+fn length_snapshot(stats: LengthStats) -> LengthStatsSnapshot {
+    LengthStatsSnapshot {
+        word_length: stats.word_length,
+        solved_rounds: stats.solved_rounds,
+        failed_rounds: stats.failed_rounds,
     }
 }

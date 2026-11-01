@@ -13,6 +13,14 @@ pub struct PlayerProgress {
     pub failed_rounds: u32,
     pub sound_enabled: bool,
     pub badges: Vec<String>,
+    pub length_stats: Vec<LengthStats>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LengthStats {
+    pub word_length: u8,
+    pub solved_rounds: u32,
+    pub failed_rounds: u32,
 }
 
 pub struct LocalStore {
@@ -46,6 +54,18 @@ impl LocalStore {
         let badges = statement
             .query_map([], |row| row.get(0))?
             .collect::<Result<Vec<String>>>()?;
+        let mut statement = self.connection.prepare(
+            "SELECT word_length, solved_rounds, failed_rounds FROM length_stat ORDER BY word_length",
+        )?;
+        let length_stats = statement
+            .query_map([], |row| {
+                Ok(LengthStats {
+                    word_length: row.get(0)?,
+                    solved_rounds: row.get(1)?,
+                    failed_rounds: row.get(2)?,
+                })
+            })?
+            .collect::<Result<Vec<LengthStats>>>()?;
         Ok(PlayerProgress {
             total_score,
             current_streak,
@@ -54,6 +74,7 @@ impl LocalStore {
             failed_rounds,
             sound_enabled,
             badges,
+            length_stats,
         })
     }
 
@@ -69,6 +90,7 @@ impl LocalStore {
         &mut self,
         score: Option<u16>,
         attempt: Option<u8>,
+        word_length: u8,
     ) -> Result<PlayerProgress> {
         let transaction = self.connection.transaction()?;
         let (mut total_score, mut current_streak, mut best_streak, mut solved_rounds, mut failed_rounds): (u32, u32, u32, u32, u32) = transaction.query_row(
@@ -89,6 +111,15 @@ impl LocalStore {
         transaction.execute(
             "UPDATE player_progress SET total_score = ?1, current_streak = ?2, best_streak = ?3, solved_rounds = ?4, failed_rounds = ?5 WHERE id = 1",
             params![total_score, current_streak, best_streak, solved_rounds, failed_rounds],
+        )?;
+        let column = if score.is_some() {
+            "solved_rounds"
+        } else {
+            "failed_rounds"
+        };
+        transaction.execute(
+            &format!("UPDATE length_stat SET {column} = {column} + 1 WHERE word_length = ?1"),
+            params![word_length],
         )?;
         transaction.commit()?;
         self.progress()
@@ -135,6 +166,12 @@ impl LocalStore {
                 code TEXT PRIMARY KEY NOT NULL,
                 awarded_at_ms INTEGER NOT NULL DEFAULT 0
             );
+            CREATE TABLE IF NOT EXISTS length_stat (
+                word_length INTEGER PRIMARY KEY CHECK (word_length BETWEEN 4 AND 6),
+                solved_rounds INTEGER NOT NULL DEFAULT 0,
+                failed_rounds INTEGER NOT NULL DEFAULT 0
+            );
+            INSERT OR IGNORE INTO length_stat (word_length) VALUES (4), (5), (6);
             CREATE TABLE IF NOT EXISTS pending_round (
                 id INTEGER PRIMARY KEY CHECK (id = 1),
                 target TEXT NOT NULL,
@@ -202,13 +239,29 @@ mod tests {
     fn progress_and_badges_are_transactional_and_idempotent() {
         let mut store = LocalStore::in_memory().unwrap();
         assert!(store.progress().unwrap().sound_enabled);
-        let progress = store.record_round(Some(1_000), Some(1)).unwrap();
+        let progress = store.record_round(Some(1_000), Some(1), 5).unwrap();
         assert_eq!(progress.total_score, 1_000);
         assert_eq!(progress.current_streak, 1);
         assert_eq!(progress.badges, vec!["first_attempt", "first_solved"]);
-        let progress = store.record_round(None, None).unwrap();
+        let progress = store.record_round(None, None, 4).unwrap();
         assert_eq!(progress.current_streak, 0);
         assert_eq!(progress.failed_rounds, 1);
+        assert_eq!(
+            progress.length_stats[0],
+            LengthStats {
+                word_length: 4,
+                solved_rounds: 0,
+                failed_rounds: 1
+            }
+        );
+        assert_eq!(
+            progress.length_stats[1],
+            LengthStats {
+                word_length: 5,
+                solved_rounds: 1,
+                failed_rounds: 0
+            }
+        );
         store.set_sound_enabled(false).unwrap();
         assert!(!store.progress().unwrap().sound_enabled);
     }

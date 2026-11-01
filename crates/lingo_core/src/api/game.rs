@@ -54,7 +54,11 @@ pub fn reconcile_round(now_ms: i64) -> Result<RoundSnapshot, String> {
     let was_in_progress = round.status() == RoundStatus::InProgress;
     round.reconcile_time(clock(now_ms));
     if was_in_progress && round.status() == RoundStatus::Failed {
-        crate::api::storage::record_completed_round(None, None)?;
+        crate::api::storage::record_completed_round(
+            None,
+            None,
+            round.revealed_positions().len() as u8,
+        )?;
     }
     crate::api::storage::save_active_round(round)?;
     Ok(snapshot(round))
@@ -83,7 +87,11 @@ fn record_terminal_transition(
             (None, None)
         }
     };
-    crate::api::storage::record_completed_round(score, attempt)
+    crate::api::storage::record_completed_round(
+        score,
+        attempt,
+        round.revealed_positions().len() as u8,
+    )
 }
 
 fn active_round() -> &'static Mutex<Option<Round>> {

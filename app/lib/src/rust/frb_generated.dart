@@ -382,9 +382,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  LengthStatsSnapshot dco_decode_length_stats_snapshot(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return LengthStatsSnapshot(
+      wordLength: dco_decode_u_8(arr[0]),
+      solvedRounds: dco_decode_u_32(arr[1]),
+      failedRounds: dco_decode_u_32(arr[2]),
+    );
+  }
+
+  @protected
   List<String> dco_decode_list_String(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_String).toList();
+  }
+
+  @protected
+  List<LengthStatsSnapshot> dco_decode_list_length_stats_snapshot(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>)
+        .map(dco_decode_length_stats_snapshot)
+        .toList();
   }
 
   @protected
@@ -421,8 +442,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ProgressSnapshot dco_decode_progress_snapshot(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 7)
-      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
+    if (arr.length != 8)
+      throw Exception('unexpected arr length: expect 8 but see ${arr.length}');
     return ProgressSnapshot(
       totalScore: dco_decode_u_32(arr[0]),
       currentStreak: dco_decode_u_32(arr[1]),
@@ -431,6 +452,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       failedRounds: dco_decode_u_32(arr[4]),
       soundEnabled: dco_decode_bool(arr[5]),
       badges: dco_decode_list_String(arr[6]),
+      lengthStats: dco_decode_list_length_stats_snapshot(arr[7]),
     );
   }
 
@@ -522,6 +544,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  LengthStatsSnapshot sse_decode_length_stats_snapshot(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_wordLength = sse_decode_u_8(deserializer);
+    var var_solvedRounds = sse_decode_u_32(deserializer);
+    var var_failedRounds = sse_decode_u_32(deserializer);
+    return LengthStatsSnapshot(
+        wordLength: var_wordLength,
+        solvedRounds: var_solvedRounds,
+        failedRounds: var_failedRounds);
+  }
+
+  @protected
   List<String> sse_decode_list_String(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -529,6 +564,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var ans_ = <String>[];
     for (var idx_ = 0; idx_ < len_; ++idx_) {
       ans_.add(sse_decode_String(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<LengthStatsSnapshot> sse_decode_list_length_stats_snapshot(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <LengthStatsSnapshot>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_length_stats_snapshot(deserializer));
     }
     return ans_;
   }
@@ -596,6 +644,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_failedRounds = sse_decode_u_32(deserializer);
     var var_soundEnabled = sse_decode_bool(deserializer);
     var var_badges = sse_decode_list_String(deserializer);
+    var var_lengthStats = sse_decode_list_length_stats_snapshot(deserializer);
     return ProgressSnapshot(
         totalScore: var_totalScore,
         currentStreak: var_currentStreak,
@@ -603,7 +652,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         solvedRounds: var_solvedRounds,
         failedRounds: var_failedRounds,
         soundEnabled: var_soundEnabled,
-        badges: var_badges);
+        badges: var_badges,
+        lengthStats: var_lengthStats);
   }
 
   @protected
@@ -697,11 +747,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_length_stats_snapshot(
+      LengthStatsSnapshot self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_8(self.wordLength, serializer);
+    sse_encode_u_32(self.solvedRounds, serializer);
+    sse_encode_u_32(self.failedRounds, serializer);
+  }
+
+  @protected
   void sse_encode_list_String(List<String> self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
       sse_encode_String(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_length_stats_snapshot(
+      List<LengthStatsSnapshot> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_length_stats_snapshot(item, serializer);
     }
   }
 
@@ -765,6 +834,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_u_32(self.failedRounds, serializer);
     sse_encode_bool(self.soundEnabled, serializer);
     sse_encode_list_String(self.badges, serializer);
+    sse_encode_list_length_stats_snapshot(self.lengthStats, serializer);
   }
 
   @protected
