@@ -95,6 +95,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 'Puan: ${_progress?.totalScore ?? 0}  •  Seri: ${_progress?.currentStreak ?? 0}',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
+              if (_progress != null)
+                Text(
+                  _progress!.lengthStats
+                      .map((stats) =>
+                          '${stats.wordLength}h ${stats.solvedRounds}/${stats.solvedRounds + stats.failedRounds}')
+                      .join('  •  '),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               const SizedBox(height: 12),
               if (_pendingRound != null)
                 Padding(
