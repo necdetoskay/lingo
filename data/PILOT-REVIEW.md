@@ -13,6 +13,12 @@ from `candidate` to `approved` only after that review. Approved rows are
 seeded into the offline SQLite dictionary on the next app launch; `rejected`
 rows are never loaded.
 
+## Review outcome
+
+The product owner approved the complete 150-entry pilot on 2026-11-01. All
+rows are therefore marked `approved` and are bundled as both valid guesses and
+eligible answers.
+
 The app records the source, pinned revision, MPL-2.0 license, definition,
 part of speech, and difficulty for each approved entry. The runtime does not
 contact the source or scrape any online service.

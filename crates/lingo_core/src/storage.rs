@@ -319,6 +319,18 @@ fn award_badges(
 mod tests {
     use super::*;
 
+    fn restrict_bundled_pilot(store: &LocalStore) {
+        for entry in crate::pilot_dictionary::approved_entries().unwrap() {
+            store
+                .connection
+                .execute(
+                    "INSERT INTO dictionary_restriction (normalized_word, reason) VALUES (?1, 'test isolation')",
+                    params![entry.word],
+                )
+                .unwrap();
+        }
+    }
+
     #[test]
     fn progress_and_badges_are_transactional_and_idempotent() {
         let mut store = LocalStore::in_memory().unwrap();
@@ -365,22 +377,23 @@ mod tests {
     #[test]
     fn round_vocabulary_requires_reviewed_answer_and_honors_restrictions() {
         let store = LocalStore::in_memory().unwrap();
+        restrict_bundled_pilot(&store);
         assert!(store.round_vocabulary(4).unwrap().is_none());
         store.connection.execute(
             "INSERT INTO dictionary_word (normalized_word, length, definition, source, source_version, licence, can_be_guess, can_be_answer)
-             VALUES ('KAPI', 4, 'Giriş bölümü.', 'review', 'v1', 'MPL-2.0', 1, 1)",
+             VALUES ('YAMA', 4, 'Kumaştaki deliği kapatan parça.', 'review', 'v1', 'MPL-2.0', 1, 1)",
             [],
         ).unwrap();
         store.connection.execute(
             "INSERT INTO dictionary_word (normalized_word, length, definition, source, source_version, licence, can_be_guess, can_be_answer)
-             VALUES ('KARE', 4, '', 'review', 'v1', 'MPL-2.0', 1, 1)",
+             VALUES ('YAKA', 4, '', 'review', 'v1', 'MPL-2.0', 1, 1)",
             [],
         ).unwrap();
         let vocabulary = store.round_vocabulary(4).unwrap().unwrap();
-        assert_eq!(vocabulary.target, "KAPI");
-        assert!(vocabulary.guesses.contains("KARE"));
+        assert_eq!(vocabulary.target, "YAMA");
+        assert!(vocabulary.guesses.contains("YAKA"));
         store.connection.execute(
-            "INSERT INTO dictionary_restriction (normalized_word, reason) VALUES ('KAPI', 'reviewed exclusion')",
+            "INSERT INTO dictionary_restriction (normalized_word, reason) VALUES ('YAMA', 'reviewed exclusion')",
             [],
         ).unwrap();
         assert!(store.round_vocabulary(4).unwrap().is_none());
@@ -389,10 +402,11 @@ mod tests {
     #[test]
     fn round_vocabulary_selects_only_eligible_targets() {
         let store = LocalStore::in_memory().unwrap();
+        restrict_bundled_pilot(&store);
         for (word, definition, answer) in [
-            ("KAPI", "Giriş bölümü.", 1),
-            ("KARE", "Dört eşit kenarlı şekil.", 1),
-            ("KASA", "Para saklanan kutu.", 0),
+            ("YAMA", "Kumaştaki deliği kapatan parça.", 1),
+            ("YAKA", "Giysinin boynu çevreleyen bölümü.", 1),
+            ("YANA", "Bir tarafa doğru.", 0),
         ] {
             store.connection.execute(
                 "INSERT INTO dictionary_word (normalized_word, length, definition, source, source_version, licence, can_be_guess, can_be_answer)
@@ -402,8 +416,8 @@ mod tests {
         }
         for _ in 0..20 {
             let vocabulary = store.round_vocabulary(4).unwrap().unwrap();
-            assert!(["KAPI", "KARE"].contains(&vocabulary.target.as_str()));
-            assert!(vocabulary.guesses.contains("KASA"));
+            assert!(["YAMA", "YAKA"].contains(&vocabulary.target.as_str()));
+            assert!(vocabulary.guesses.contains("YANA"));
         }
     }
 
@@ -412,12 +426,23 @@ mod tests {
         let store = LocalStore::in_memory().unwrap();
         store.connection.execute(
             "INSERT INTO dictionary_word (normalized_word, length, definition, source, source_version, licence, can_be_guess, can_be_answer)
-             VALUES ('KİTAP', 5, 'Okunan veya yazılan yaprakların bir araya getirilmiş bütünü.', 'review', 'v1', 'MPL-2.0', 1, 1)",
+             VALUES ('YAMA', 4, 'Kumaştaki deliği kapatan parça.', 'review', 'v1', 'MPL-2.0', 1, 1)",
             [],
         ).unwrap();
         assert_eq!(
-            store.definition_for("kitap").unwrap().as_deref(),
-            Some("Okunan veya yazılan yaprakların bir araya getirilmiş bütünü.")
+            store.definition_for("yama").unwrap().as_deref(),
+            Some("Kumaştaki deliği kapatan parça.")
         );
+    }
+
+    #[test]
+    fn approved_pilot_seeds_playable_rounds_for_every_length() {
+        let store = LocalStore::in_memory().unwrap();
+        for length in 4..=6 {
+            let vocabulary = store.round_vocabulary(length).unwrap().unwrap();
+            assert_eq!(vocabulary.target.chars().count(), length as usize);
+            assert!(vocabulary.guesses.contains(&vocabulary.target));
+            assert!(store.definition_for(&vocabulary.target).unwrap().is_some());
+        }
     }
 }

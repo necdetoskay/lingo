@@ -96,7 +96,17 @@ mod tests {
     }
 
     #[test]
-    fn candidates_do_not_bypass_human_review() {
-        assert!(approved_entries().unwrap().is_empty());
+    fn approved_entries_are_balanced_after_review() {
+        let entries = approved_entries().unwrap();
+        assert_eq!(entries.len(), 150);
+        for length in 4..=6 {
+            assert_eq!(
+                entries
+                    .iter()
+                    .filter(|entry| entry.word.chars().count() == length)
+                    .count(),
+                50
+            );
+        }
     }
 }
