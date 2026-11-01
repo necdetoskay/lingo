@@ -68,6 +68,9 @@ impl Round {
     pub fn deadline_ms(&self) -> u64 {
         self.deadline_ms
     }
+    pub fn answer(&self) -> String {
+        self.target.iter().collect()
+    }
     pub fn revealed_positions(&self) -> &[Option<char>] {
         &self.revealed_positions
     }
@@ -227,5 +230,6 @@ mod tests {
         let mut round = Round::new("KALEM", 0).unwrap();
         assert_eq!(round.reconcile_time(100_001), 5);
         assert_eq!(round.status(), RoundStatus::Failed);
+        assert_eq!(round.answer(), "KALEM");
     }
 }

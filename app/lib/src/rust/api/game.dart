@@ -55,6 +55,7 @@ class RoundSnapshot {
   final int attemptsRemaining;
   final PlatformInt64 deadlineMs;
   final String status;
+  final String? answer;
   final List<String?> revealedLetters;
 
   const RoundSnapshot({
@@ -63,6 +64,7 @@ class RoundSnapshot {
     required this.attemptsRemaining,
     required this.deadlineMs,
     required this.status,
+    this.answer,
     required this.revealedLetters,
   });
 
@@ -73,6 +75,7 @@ class RoundSnapshot {
       attemptsRemaining.hashCode ^
       deadlineMs.hashCode ^
       status.hashCode ^
+      answer.hashCode ^
       revealedLetters.hashCode;
 
   @override
@@ -85,5 +88,6 @@ class RoundSnapshot {
           attemptsRemaining == other.attemptsRemaining &&
           deadlineMs == other.deadlineMs &&
           status == other.status &&
+          answer == other.answer &&
           revealedLetters == other.revealedLetters;
 }

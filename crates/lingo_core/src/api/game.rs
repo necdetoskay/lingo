@@ -12,6 +12,7 @@ pub struct RoundSnapshot {
     pub attempts_remaining: u8,
     pub deadline_ms: i64,
     pub status: String,
+    pub answer: Option<String>,
     pub revealed_letters: Vec<Option<String>>,
 }
 
@@ -88,6 +89,10 @@ fn snapshot(round: &Round) -> RoundSnapshot {
             RoundStatus::Failed => "failed",
         }
         .to_owned(),
+        answer: match round.status() {
+            RoundStatus::InProgress => None,
+            RoundStatus::Won | RoundStatus::Failed => Some(round.answer()),
+        },
         revealed_letters: round
             .revealed_positions()
             .iter()

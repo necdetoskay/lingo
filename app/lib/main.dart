@@ -195,6 +195,12 @@ class _GameScreenState extends State<GameScreen> {
                         helperText: _message),
                     onSubmitted: (_) => _submit())),
           ]),
+          if (round?.answer != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: Text('Yanıt: ${round!.answer}',
+                  style: Theme.of(context).textTheme.titleMedium),
+            ),
           FilledButton(
               onPressed: isOver ? _start : _submit,
               child: Text(isOver ? 'Yeni tur' : 'Tahmin et')),

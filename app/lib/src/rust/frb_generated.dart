@@ -288,15 +288,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   RoundSnapshot dco_decode_round_snapshot(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 6)
-      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    if (arr.length != 7)
+      throw Exception('unexpected arr length: expect 7 but see ${arr.length}');
     return RoundSnapshot(
       wordLength: dco_decode_u_8(arr[0]),
       attemptsUsed: dco_decode_u_8(arr[1]),
       attemptsRemaining: dco_decode_u_8(arr[2]),
       deadlineMs: dco_decode_i_64(arr[3]),
       status: dco_decode_String(arr[4]),
-      revealedLetters: dco_decode_list_opt_String(arr[5]),
+      answer: dco_decode_opt_String(arr[5]),
+      revealedLetters: dco_decode_list_opt_String(arr[6]),
     );
   }
 
@@ -400,6 +401,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_attemptsRemaining = sse_decode_u_8(deserializer);
     var var_deadlineMs = sse_decode_i_64(deserializer);
     var var_status = sse_decode_String(deserializer);
+    var var_answer = sse_decode_opt_String(deserializer);
     var var_revealedLetters = sse_decode_list_opt_String(deserializer);
     return RoundSnapshot(
         wordLength: var_wordLength,
@@ -407,6 +409,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         attemptsRemaining: var_attemptsRemaining,
         deadlineMs: var_deadlineMs,
         status: var_status,
+        answer: var_answer,
         revealedLetters: var_revealedLetters);
   }
 
@@ -513,6 +516,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_u_8(self.attemptsRemaining, serializer);
     sse_encode_i_64(self.deadlineMs, serializer);
     sse_encode_String(self.status, serializer);
+    sse_encode_opt_String(self.answer, serializer);
     sse_encode_list_opt_String(self.revealedLetters, serializer);
   }
 

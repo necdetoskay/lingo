@@ -3,7 +3,7 @@
 Before V1 is considered playable:
 
 - A full 4-, 5-, and 6-letter round works offline.
-- First letters and green positions are immutable in subsequent input.
+- The first letter is fixed in input; later green positions remain visible hints but may be replaced in subsequent guesses.
 - Duplicate-letter feedback matches two-pass matching fixtures.
 - Invalid guesses preserve attempt count while their timer continues.
 - Each timeout consumes exactly one attempt, including background restore.
