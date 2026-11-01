@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:lingo_app/src/rust/api/game.dart';
 import 'package:lingo_app/src/rust/frb_generated.dart';
 
 Future<void> main() async {
@@ -10,21 +13,171 @@ Future<void> main() async {
 class LingoApp extends StatelessWidget {
   const LingoApp({super.key});
   @override
-  Widget build(BuildContext context) => MaterialApp(home: const HomeScreen());
+  Widget build(BuildContext context) => MaterialApp(
+        title: 'Lingo',
+        theme: ThemeData(colorSchemeSeed: Colors.teal, useMaterial3: true),
+        home: const HomeScreen(),
+      );
 }
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Lingo')),
-    body: Center(child: FilledButton(onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const GameScreen(length: 4))), child: const Text('4 harf'))),
-  );
+        appBar: AppBar(title: const Text('Lingo')),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Kelime uzunluğunu seç'),
+              const SizedBox(height: 16),
+              for (final length in [4, 5, 6])
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: FilledButton(
+                    onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                            builder: (_) => GameScreen(length: length))),
+                    child: Text('$length harf'),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
 }
 
-class GameScreen extends StatelessWidget {
+class GameScreen extends StatefulWidget {
   const GameScreen({required this.length, super.key});
   final int length;
+
   @override
-  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: Text('$length harfli kelime')), body: const Center(child: Text('Hak: 5 / 5')));
+  State<GameScreen> createState() => _GameScreenState();
+}
+
+class _GameScreenState extends State<GameScreen> {
+  final _guess = TextEditingController();
+  RoundSnapshot? _round;
+  String _message = '';
+  List<int> _feedback = const [];
+  Timer? _timer;
+
+  int get _now => DateTime.now().millisecondsSinceEpoch;
+
+  @override
+  void initState() {
+    super.initState();
+    _start();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _sync());
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _guess.dispose();
+    super.dispose();
+  }
+
+  Future<void> _start() async {
+    try {
+      final round = await startRound(wordLength: widget.length, nowMs: _now);
+      if (mounted) {
+        setState(() {
+          _round = round;
+          _feedback = const [];
+          _message = '';
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _message = 'Oyun motoru başlatılamadı.');
+    }
+  }
+
+  Future<void> _sync() async {
+    if (_round == null || _round!.status != 'in_progress') return;
+    try {
+      final round = await reconcileRound(nowMs: _now);
+      if (mounted) {
+        setState(() => _round = round);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _submit() async {
+    if (_guess.text.runes.length != widget.length) {
+      setState(() => _message = '${widget.length} harf girin.');
+      return;
+    }
+    try {
+      final result = await submitGuess(guess: _guess.text, nowMs: _now);
+      if (!mounted) return;
+      setState(() {
+        _round = result.snapshot;
+        _feedback = result.feedback;
+        _message = result.result == 'invalid_word'
+            ? 'Bu kelime sözlükte yok veya açık harflere uymuyor.'
+            : result.score == null
+                ? ''
+                : 'Tebrikler! ${result.score} puan.';
+      });
+      _guess.clear();
+    } catch (_) {
+      if (mounted) setState(() => _message = 'Tahmin işlenemedi.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final round = _round;
+    final seconds = round == null
+        ? 20
+        : ((round.deadlineMs - _now) / 1000).ceil().clamp(0, 20);
+    final letters =
+        round?.lockedLetters ?? List<String?>.filled(widget.length, null);
+    final isOver = round != null && round.status != 'in_progress';
+    return Scaffold(
+      appBar: AppBar(title: Text('${widget.length} harfli kelime')),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(children: [
+          Text('Hak: ${round?.attemptsRemaining ?? 5} / 5',
+              style: Theme.of(context).textTheme.titleLarge),
+          Text('Süre: $seconds sn'),
+          const SizedBox(height: 24),
+          Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(letters.length, (index) {
+                final color = index < _feedback.length
+                    ? (_feedback[index] == 2
+                        ? Colors.green
+                        : _feedback[index] == 1
+                            ? Colors.amber
+                            : Colors.grey)
+                    : Colors.blueGrey;
+                return Container(
+                    width: 44,
+                    height: 44,
+                    margin: const EdgeInsets.all(3),
+                    alignment: Alignment.center,
+                    color: color,
+                    child: Text(letters[index] ?? '',
+                        style: const TextStyle(
+                            color: Colors.white, fontSize: 20)));
+              })),
+          const SizedBox(height: 18),
+          TextField(
+              controller: _guess,
+              maxLength: widget.length,
+              textCapitalization: TextCapitalization.characters,
+              textAlign: TextAlign.center,
+              decoration:
+                  InputDecoration(labelText: 'Tahminin', helperText: _message),
+              onSubmitted: (_) => _submit()),
+          FilledButton(
+              onPressed: isOver ? _start : _submit,
+              child: Text(isOver ? 'Yeni tur' : 'Tahmin et')),
+        ]),
+      ),
+    );
+  }
 }
