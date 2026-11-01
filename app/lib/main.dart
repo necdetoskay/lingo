@@ -191,8 +191,12 @@ class _GameScreenState extends State<GameScreen> {
           _message = '';
         });
       }
-    } catch (_) {
-      if (mounted) setState(() => _message = 'Oyun motoru başlatılamadı.');
+    } catch (error) {
+      if (mounted) {
+        setState(() => _message = error.toString().contains('no reviewed')
+            ? 'Bu uzunluk için onaylı kelime paketi henüz yüklenmedi.'
+            : 'Oyun motoru başlatılamadı.');
+      }
     }
   }
 

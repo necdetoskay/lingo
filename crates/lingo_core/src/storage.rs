@@ -2,7 +2,9 @@
 
 use rusqlite::{params, Connection, OptionalExtension, Result, Transaction};
 
-use crate::{PersistedRound, Round};
+use std::collections::HashSet;
+
+use crate::{normalize, PersistedRound, Round};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PlayerProgress {
@@ -21,6 +23,15 @@ pub struct LengthStats {
     pub word_length: u8,
     pub solved_rounds: u32,
     pub failed_rounds: u32,
+}
+
+/// The locally packaged vocabulary required to run one round.
+///
+/// It is deliberately loaded only from reviewed SQLite records.  The runtime
+/// must never fall back to a development fixture or an online source.
+pub struct RoundVocabulary {
+    pub target: String,
+    pub guesses: HashSet<String>,
 }
 
 pub struct LocalStore {
@@ -84,6 +95,46 @@ impl LocalStore {
             params![enabled],
         )?;
         Ok(())
+    }
+
+    pub fn round_vocabulary(&self, word_length: u8) -> Result<Option<RoundVocabulary>> {
+        let mut guesses_statement = self.connection.prepare(
+            "SELECT normalized_word
+             FROM dictionary_word AS word
+             WHERE word.length = ?1
+               AND word.can_be_guess = 1
+               AND NOT EXISTS (
+                   SELECT 1 FROM dictionary_restriction AS restriction
+                   WHERE restriction.normalized_word = word.normalized_word
+               )",
+        )?;
+        let guesses = guesses_statement
+            .query_map(params![word_length], |row| row.get::<_, String>(0))?
+            .collect::<Result<HashSet<_>>>()?;
+
+        let target = self
+            .connection
+            .query_row(
+                "SELECT word.normalized_word
+                 FROM dictionary_word AS word
+                 WHERE word.length = ?1
+                   AND word.can_be_guess = 1
+                   AND word.can_be_answer = 1
+                   AND length(trim(word.definition)) > 0
+                   AND NOT EXISTS (
+                       SELECT 1 FROM dictionary_restriction AS restriction
+                       WHERE restriction.normalized_word = word.normalized_word
+                   )
+                 ORDER BY word.normalized_word
+                 LIMIT 1",
+                params![word_length],
+                |row| row.get::<_, String>(0),
+            )
+            .optional()?;
+        Ok(target.map(|target| RoundVocabulary {
+            target: normalize(&target),
+            guesses: guesses.into_iter().map(|word| normalize(&word)).collect(),
+        }))
     }
 
     pub fn record_round(
@@ -276,5 +327,29 @@ mod tests {
         assert_eq!(restored.attempts_used(), 0);
         assert_eq!(restored.deadline_ms(), 20_123);
         assert_eq!(restored.revealed_positions()[0], Some('K'));
+    }
+
+    #[test]
+    fn round_vocabulary_requires_reviewed_answer_and_honors_restrictions() {
+        let store = LocalStore::in_memory().unwrap();
+        assert!(store.round_vocabulary(4).unwrap().is_none());
+        store.connection.execute(
+            "INSERT INTO dictionary_word (normalized_word, length, definition, source, source_version, licence, can_be_guess, can_be_answer)
+             VALUES ('KAPI', 4, 'Giriş bölümü.', 'review', 'v1', 'MPL-2.0', 1, 1)",
+            [],
+        ).unwrap();
+        store.connection.execute(
+            "INSERT INTO dictionary_word (normalized_word, length, definition, source, source_version, licence, can_be_guess, can_be_answer)
+             VALUES ('KARE', 4, '', 'review', 'v1', 'MPL-2.0', 1, 1)",
+            [],
+        ).unwrap();
+        let vocabulary = store.round_vocabulary(4).unwrap().unwrap();
+        assert_eq!(vocabulary.target, "KAPI");
+        assert!(vocabulary.guesses.contains("KARE"));
+        store.connection.execute(
+            "INSERT INTO dictionary_restriction (normalized_word, reason) VALUES ('KAPI', 'reviewed exclusion')",
+            [],
+        ).unwrap();
+        assert!(store.round_vocabulary(4).unwrap().is_none());
     }
 }
