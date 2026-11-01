@@ -33,6 +33,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool _soundEnabled = true;
+  ProgressSnapshot? _progress;
 
   @override
   void initState() {
@@ -44,7 +45,10 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final snapshot = await progress();
       if (mounted) {
-        setState(() => _soundEnabled = snapshot.soundEnabled);
+        setState(() {
+          _soundEnabled = snapshot.soundEnabled;
+          _progress = snapshot;
+        });
       }
     } catch (_) {
       // Widget tests intentionally run without native storage.
@@ -55,7 +59,10 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final snapshot = await setSoundEnabled(enabled: !_soundEnabled);
       if (mounted) {
-        setState(() => _soundEnabled = snapshot.soundEnabled);
+        setState(() {
+          _soundEnabled = snapshot.soundEnabled;
+          _progress = snapshot;
+        });
       }
     } catch (_) {
       // Preference failures must not block gameplay.
@@ -80,13 +87,20 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               const Text('Kelime uzunluğunu seç'),
               const SizedBox(height: 16),
+              Text(
+                'Puan: ${_progress?.totalScore ?? 0}  •  Seri: ${_progress?.currentStreak ?? 0}',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 12),
               for (final length in [4, 5, 6])
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: FilledButton(
-                    onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                            builder: (_) => GameScreen(length: length))),
+                    onPressed: () async {
+                      await Navigator.of(context).push(MaterialPageRoute<void>(
+                          builder: (_) => GameScreen(length: length)));
+                      await _loadPreferences();
+                    },
                     child: Text('$length harf'),
                   ),
                 ),
