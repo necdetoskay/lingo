@@ -2,7 +2,7 @@
 
 ## Rust core
 
-Unit and state-machine tests cover Turkish normalization, dictionary acceptance, duplicate letters, first-letter enforcement, persistent revealed-letter hints with flexible later guesses, five-attempt scoring, idempotent terminal actions, concurrent guess/expiry ordering, and background reconciliation.
+Unit and state-machine tests cover Turkish normalization, dictionary acceptance, repeated present letters with unbounded yellow (green priority), first-letter enforcement, persistent revealed-letter hints with flexible later guesses, five-attempt scoring, idempotent terminal actions, concurrent guess/expiry ordering, and background reconciliation.
 
 ## Data pipeline
 
