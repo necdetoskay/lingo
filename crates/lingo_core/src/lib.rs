@@ -242,9 +242,30 @@ mod tests {
         values.iter().map(|value| normalize(value)).collect()
     }
     #[test]
-    fn duplicate_letters_are_not_overreported() {
+    fn repeated_letters_present_in_target_remain_yellow_regardless_of_count() {
+        // Accepted UI rule: exact positions are green first; every additional
+        // wrong-position repetition of a present letter remains yellow.
         assert_eq!(
             evaluate(&['A', 'L', 'E', 'M'], &['A', 'A', 'A', 'A']),
+            vec![
+                TileFeedback::Correct,
+                TileFeedback::Present,
+                TileFeedback::Present,
+                TileFeedback::Present
+            ]
+        );
+        assert_eq!(
+            evaluate(&['K', 'A', 'L', 'E', 'M'], &['K', 'A', 'A', 'A', 'A']),
+            vec![
+                TileFeedback::Correct,
+                TileFeedback::Correct,
+                TileFeedback::Present,
+                TileFeedback::Present,
+                TileFeedback::Present
+            ]
+        );
+        assert_eq!(
+            evaluate(&['A', 'L', 'E', 'M'], &['A', 'Z', 'Z', 'Z']),
             vec![
                 TileFeedback::Correct,
                 TileFeedback::Absent,
