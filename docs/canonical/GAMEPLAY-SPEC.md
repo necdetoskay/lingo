@@ -1,4 +1,4 @@
-# Gameplay Specification v1.0
+# Gameplay Specification v1.1
 
 ## Core loop
 
@@ -22,7 +22,7 @@ The UI may animate outcomes, but the game core is the sole authority for accepta
 
 A guess is a complete dictionary word that begins with the revealed first letter. It must be present in the guess dictionary to be valid. A valid guess can differ from the answer.
 
-Feedback follows two-pass Wordle-style matching: exact-position matches are green first; remaining matching letters are yellow only while unmatched answer-letter counts remain; all other letters are gray. This avoids over-reporting repeated letters.
+Feedback is **green-first and presence-based**: a guessed letter at the exact answer position is green; otherwise, if the letter occurs anywhere in the answer, that position is yellow, **even when the guess repeats the letter more times than the answer contains it**; otherwise it is gray. Yellow occurrences are not count-limited. Example: answer ALEM, guess AAAA => green, yellow, yellow, yellow. This follows the accepted 2026-11-03 Lingo UI decision; it intentionally differs from two-pass Wordle-style accounting.
 
 Every green position remains visibly revealed as a persistent hint. Other than the first letter, revealed green letters are not mandatory in later guesses: the player may submit another word with a different letter in that position to test alternatives. Yellow letters are also hints only.
 
