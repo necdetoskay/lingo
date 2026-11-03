@@ -216,23 +216,22 @@ pub fn normalize(value: &str) -> String {
 }
 
 pub fn evaluate(target: &[char], guess: &[char]) -> Vec<TileFeedback> {
-    let mut result = vec![TileFeedback::Absent; target.len()];
-    let mut remaining = target.to_vec();
-    for index in 0..target.len() {
-        if guess[index] == target[index] {
-            result[index] = TileFeedback::Correct;
-            remaining[index] = '\0';
-        }
-    }
-    for index in 0..target.len() {
-        if result[index] != TileFeedback::Correct {
-            if let Some(found) = remaining.iter().position(|letter| *letter == guess[index]) {
-                result[index] = TileFeedback::Present;
-                remaining[found] = '\0';
+    // Exact-position green always has priority. For all other positions, a
+    // letter present anywhere in the answer is yellow, even when repeated
+    // more often than its answer frequency (the accepted Lingo UI policy).
+    guess
+        .iter()
+        .enumerate()
+        .map(|(index, letter)| {
+            if target.get(index) == Some(letter) {
+                TileFeedback::Correct
+            } else if target.contains(letter) {
+                TileFeedback::Present
+            } else {
+                TileFeedback::Absent
             }
-        }
-    }
-    result
+        })
+        .collect()
 }
 
 #[cfg(test)]
@@ -242,9 +241,30 @@ mod tests {
         values.iter().map(|value| normalize(value)).collect()
     }
     #[test]
-    fn duplicate_letters_are_not_overreported() {
+    fn repeated_letters_present_in_target_remain_yellow_regardless_of_count() {
+        // Accepted UI rule: exact positions are green first; every additional
+        // wrong-position repetition of a present letter remains yellow.
         assert_eq!(
             evaluate(&['A', 'L', 'E', 'M'], &['A', 'A', 'A', 'A']),
+            vec![
+                TileFeedback::Correct,
+                TileFeedback::Present,
+                TileFeedback::Present,
+                TileFeedback::Present
+            ]
+        );
+        assert_eq!(
+            evaluate(&['K', 'A', 'L', 'E', 'M'], &['K', 'A', 'A', 'A', 'A']),
+            vec![
+                TileFeedback::Correct,
+                TileFeedback::Correct,
+                TileFeedback::Present,
+                TileFeedback::Present,
+                TileFeedback::Present
+            ]
+        );
+        assert_eq!(
+            evaluate(&['A', 'L', 'E', 'M'], &['A', 'Z', 'Z', 'Z']),
             vec![
                 TileFeedback::Correct,
                 TileFeedback::Absent,
