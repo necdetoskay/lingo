@@ -4,7 +4,7 @@ Before V1 is considered playable:
 
 - A full 4-, 5-, and 6-letter round works offline.
 - The first letter is fixed in input; later green positions remain visible hints but may be replaced in subsequent guesses.
-- Duplicate-letter feedback matches two-pass matching fixtures.
+- Duplicate-letter feedback follows green-first, presence-based yellow with no count limit (ALEM/AAAA => green/yellow/yellow/yellow).
 - Invalid guesses preserve attempt count while their timer continues.
 - Each timeout consumes exactly one attempt, including background restore.
 - Five expired or failed attempts reveal the word, reset the streak, and award zero.
