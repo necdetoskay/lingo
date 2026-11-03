@@ -17,3 +17,14 @@ Status: OPEN / architecture review required · Source of authority: accepted pro
 3. Match-scoped settings: deterministic effective rules snapshot, host-authoritative, validated and locked before match. For LAN v2 the currently accepted values are fixed.
 4. Prioritize deterministic test fixtures and UI golden/widget tests before checking off tasks.
 5. Do not label a draft proposal an accepted decision or assert that this register fixes the code.
+
+## Pilot dictionary constraint measurement (EP-01, reproducible inspection)
+Source: `data/pilot-candidates.tsv` on `main`, blob `5758e9e8c5a0f995050bdf3a2cd857a03d5e5320`; 150 rows with `review_state=approved`, 50 per word length. For each **target / distinct valid first guess with the same initial letter**, count remaining **non-answer exploratory** approved guesses after green positions become mandatory. The target answer itself always remains legal; zero below means **no exploratory alternative besides the answer**, not an unwinnable round. This measurement considers only the pilot set, not a future larger guess-only lexicon.
+
+| Letters | Target/first-guess pairs | No remaining exploratory guess if all greens locked | Rate | Same count with only first-letter requirement |
+| --- | ---: | ---: | ---: | ---: |
+| 4 | 266 | 38 | 14.3% | 2 |
+| 5 | 174 | 50 | 28.7% | 10 |
+| 6 | 160 | 54 | 33.8% | 10 |
+
+Example: target `AİLE`, first guess `ANNE`; with both first/last correct positions locked, none of the **other approved non-answer 4-letter A-words** fits, though correct `AİLE` is still a legal answer. This measurement supports a **playability review** before hard-locking all green positions or broadening approved guess dictionary. It does not authorize overriding the user's green-lock request.
