@@ -216,23 +216,22 @@ pub fn normalize(value: &str) -> String {
 }
 
 pub fn evaluate(target: &[char], guess: &[char]) -> Vec<TileFeedback> {
-    let mut result = vec![TileFeedback::Absent; target.len()];
-    let mut remaining = target.to_vec();
-    for index in 0..target.len() {
-        if guess[index] == target[index] {
-            result[index] = TileFeedback::Correct;
-            remaining[index] = '\0';
-        }
-    }
-    for index in 0..target.len() {
-        if result[index] != TileFeedback::Correct {
-            if let Some(found) = remaining.iter().position(|letter| *letter == guess[index]) {
-                result[index] = TileFeedback::Present;
-                remaining[found] = '\0';
+    // Exact-position green always has priority. For all other positions, a
+    // letter present anywhere in the answer is yellow, even when repeated
+    // more often than its answer frequency (the accepted Lingo UI policy).
+    guess
+        .iter()
+        .enumerate()
+        .map(|(index, letter)| {
+            if target.get(index) == Some(letter) {
+                TileFeedback::Correct
+            } else if target.contains(letter) {
+                TileFeedback::Present
+            } else {
+                TileFeedback::Absent
             }
-        }
-    }
-    result
+        })
+        .collect()
 }
 
 #[cfg(test)]
