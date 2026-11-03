@@ -28,3 +28,10 @@ V1 `docs/canonical/PRODUCT-SCOPE.md` excludes multiplayer and networking. V1 `GA
 
 ## Required evidence
 EP-01: reconcile historic multiplayer inventory and document precedence; EP-02: T01–T10 DB migration; EP-03/04: deterministic and security tests; EP-05: fault-injected crash-window recovery; EP-06/08: two real devices and V1 regressions. No task marked complete merely by this ADR.
+
+## Historical multiplayer inventory and compatibility (EP-01)
+The reviewed reset inventory `docs/quality/CLEANUP-INVENTORY.md` documents a preserved branch `backup/main-pre-single-player-v1-2026-11-01` containing **26 legacy design/ADR documents** for an unreleased 2–4 player server-authoritative Classic Mode (warm-up, steal, duel, final, identity, realtime transport, AEGIS/MUR). The inventory says those documents were removed from active V1 because they conflict with the offline single-player scope; historical issues #1–#24 and merged PRs #27–#32 remain historical records.
+
+**Compatibility decision:** these historical design documents are not normative for LAN v2. Reuse of any concept (identity, wire security, transport) requires source-level review and an explicit new ADR decision. Do not import server-authoritative 2–4-player warm-up/steal/duel/final flows into the two-player shared-board host-authoritative LAN mode. The inventory is a secondary summary; detailed 26-document audit is not yet complete and cannot be claimed as verified.
+
+**Acceptance:** no V1 spec rewrite; separate LAN canonical spec and ADR; reconcile exact historic references and current EPIC #39; record any contradictions before merge.
